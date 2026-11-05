@@ -64,7 +64,7 @@ function validateAction(action, p) {
 async function agentPassStart(body) {
   const bindingKey = validateAction(body.action, body.params || {})
   const { d } = await oidc()
-  const dev = await startDeviceFlow(d, { clientId: env.WORLD_CLIENT_ID, clientSecret: env.WORLD_CLIENT_SECRET, scope: env.WORLD_SCOPE })
+  const dev = await startDeviceFlow(d, { clientId: env.WORLD_CLIENT_ID, clientSecret: env.WORLD_CLIENT_SECRET, scope: env.WORLD_SCOPE, authMethod: env.WORLD_CLIENT_AUTH })
   const id = randomUUID()
   const startedAt = Math.floor(Date.now() / 1000)
   sessions.set(id, { action: body.action, params: body.params, bindingKey, deviceCode: dev.device_code, startedAt, expiresAt: startedAt + (dev.expires_in || 300), status: 'pending' })
@@ -77,7 +77,7 @@ async function agentPassPoll(body) {
   if (s.status !== 'pending') return { status: s.status, result: s.result, error: s.error }
   if (Math.floor(Date.now() / 1000) > s.expiresAt) { s.status = 'expired'; return { status: 'expired' } }
   const { d, jwks } = await oidc()
-  const r = await pollDeviceToken(d, { clientId: env.WORLD_CLIENT_ID, clientSecret: env.WORLD_CLIENT_SECRET, deviceCode: s.deviceCode })
+  const r = await pollDeviceToken(d, { clientId: env.WORLD_CLIENT_ID, clientSecret: env.WORLD_CLIENT_SECRET, deviceCode: s.deviceCode, authMethod: env.WORLD_CLIENT_AUTH })
   if (r.status === 'pending' || r.status === 'slow_down') return { status: 'pending' }
   if (r.status !== 'ok') { s.status = r.status; s.error = r.error; return { status: r.status, error: r.error } } // denied / expired / error: NO approval
 

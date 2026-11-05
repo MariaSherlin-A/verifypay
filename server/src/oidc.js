@@ -75,31 +75,43 @@ export function validateIdToken(token, o) {
   return claims
 }
 
+/**
+ * Client authentication for World's endpoints (RFC 6749 §2.3.1). World fixes the method at app registration:
+ * 'basic' (default) = HTTP Basic header with url-encoded id:secret; 'post' = client_secret in the form body.
+ */
+export function clientAuth(body, { clientId, clientSecret, authMethod = 'basic' }) {
+  const headers = { 'content-type': 'application/x-www-form-urlencoded' }
+  if (!clientSecret) return headers // public client: client_id in the body only
+  if (authMethod === 'post') {
+    body.set('client_secret', clientSecret)
+  } else {
+    const cred = `${encodeURIComponent(clientId)}:${encodeURIComponent(clientSecret)}`
+    headers.authorization = `Basic ${Buffer.from(cred).toString('base64')}`
+  }
+  return headers
+}
+
 /** RFC 8628 device authorization request. */
-export async function startDeviceFlow(discovery, { clientId, clientSecret, scope }, fetchImpl = fetch) {
+export async function startDeviceFlow(discovery, { clientId, clientSecret, scope, authMethod }, fetchImpl = fetch) {
   const ep = discovery.device_authorization_endpoint
   if (!ep) throw new Error('issuer has no device_authorization_endpoint; use the authorization-code flow from the World docs')
   const body = new URLSearchParams({ client_id: clientId, scope: scope || 'openid' })
-  if (clientSecret) body.set('client_secret', clientSecret)
-  const res = await fetchImpl(ep, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body })
+  const headers = clientAuth(body, { clientId, clientSecret, authMethod })
+  const res = await fetchImpl(ep, { method: 'POST', headers, body })
   const json = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(`device authorization failed: ${json.error || res.status}`)
   return json // device_code, user_code, verification_uri, verification_uri_complete?, expires_in, interval?
 }
 
 /** One RFC 8628 token poll. Returns {status:'pending'|'slow_down'|'denied'|'expired'|'ok', idToken?, error?} */
-export async function pollDeviceToken(discovery, { clientId, clientSecret, deviceCode }, fetchImpl = fetch) {
+export async function pollDeviceToken(discovery, { clientId, clientSecret, deviceCode, authMethod }, fetchImpl = fetch) {
   const body = new URLSearchParams({
     grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
     device_code: deviceCode,
     client_id: clientId,
   })
-  if (clientSecret) body.set('client_secret', clientSecret)
-  const res = await fetchImpl(discovery.token_endpoint, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body,
-  })
+  const headers = clientAuth(body, { clientId, clientSecret, authMethod })
+  const res = await fetchImpl(discovery.token_endpoint, { method: 'POST', headers, body })
   const json = await res.json().catch(() => ({}))
   if (res.ok && json.id_token) return { status: 'ok', idToken: json.id_token }
   switch (json.error) {

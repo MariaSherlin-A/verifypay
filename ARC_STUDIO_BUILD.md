@@ -168,7 +168,7 @@ APPROVAL_SIGNER_KEY (secret) APPROVAL_TTL_SECONDS=600
 WORLD_ISSUER=https://auth.world.org WORLD_CLIENT_ID WORLD_CLIENT_SECRET (secret, may be empty) WORLD_SCOPE=openid
 
 The same-human binding (first World ID `sub` that approves a payee/wallet owns it) must be stored persistently
-(a file or this platform's key-value store), not only in memory. Also port the 12 tests in server/test/ and run them.
+(a file or this platform's key-value store), not only in memory. Also port the 13 tests in server/test/ and run them.
 Tell me where in Studio I set server-side secrets.
 ```
 Then set the env vars in Studio's secrets/environment UI (**never paste keys into the chat**).

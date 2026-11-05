@@ -63,3 +63,15 @@ test('device poll maps RFC 8628 errors', async () => {
   assert.equal((await pollDeviceToken(disc, { clientId: CID, deviceCode: 'd' }, mk(400, { error: 'expired_token' }))).status, 'expired')
   assert.equal((await pollDeviceToken(disc, { clientId: CID, deviceCode: 'd' }, mk(200, { id_token: 'x.y.z' }))).status, 'ok')
 })
+test('client auth: Basic header by default, secret never in the body; post puts it in the body', async () => {
+  const disc = { token_endpoint: 'https://x/token' }
+  let seen
+  const cap = async (_url, init) => { seen = init; return { ok: false, status: 400, json: async () => ({ error: 'authorization_pending' }) } }
+  await pollDeviceToken(disc, { clientId: 'app_1', clientSecret: 's:/ecret', deviceCode: 'd' }, cap)
+  assert.equal(seen.headers.authorization, `Basic ${Buffer.from('app_1:s%3A%2Fecret').toString('base64')}`)
+  assert.equal(seen.body.get('client_secret'), null)
+  assert.equal(seen.body.get('client_id'), 'app_1')
+  await pollDeviceToken(disc, { clientId: 'app_1', clientSecret: 'sec', deviceCode: 'd', authMethod: 'post' }, cap)
+  assert.equal(seen.headers.authorization, undefined)
+  assert.equal(seen.body.get('client_secret'), 'sec')
+})

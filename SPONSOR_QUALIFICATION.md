@@ -33,7 +33,7 @@ CCIP track: not entered.
 | Official Agent Pass | `server/src/oidc.js`, `server/src/server.js` ✅ code / ☐ live |
 | Full journey request → completion → validated result → protected action | `docs/world-integration.md` ✅ |
 | Denied / expired / cancelled path, action does not occur | backend + UI + contract ✅ code / ☐ in video |
-| Validation in a secure backend | `validateIdToken` + 12 tests ✅ |
+| Validation in a secure backend | `validateIdToken` + 13 tests ✅ |
 | Debrief | `docs/world-debrief.md` ☐ fill |
 IDKit track: not entered (see `docs/world-integration.md`).
 

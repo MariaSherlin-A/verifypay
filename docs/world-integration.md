@@ -48,10 +48,10 @@ sequenceDiagram
 
 ## Setup
 1. Register the app at https://auth.world.org/portal; note client id (and secret if issued).
-2. `server/.env`: `WORLD_ISSUER=https://auth.world.org`, `WORLD_CLIENT_ID`, `WORLD_CLIENT_SECRET`, `WORLD_SCOPE=openid`, `APPROVAL_SIGNER_KEY` (its address is the contracts' `approvalSigner`).
+2. `server/.env`: `WORLD_ISSUER=https://auth.world.org`, `WORLD_CLIENT_ID`, `WORLD_CLIENT_SECRET`, `WORLD_SCOPE=openid`, `WORLD_CLIENT_AUTH=basic` (must match the method chosen at registration), `APPROVAL_SIGNER_KEY` (its address is the contracts' `approvalSigner`).
 3. Check `https://auth.world.org/.well-known/openid-configuration` lists `device_authorization_endpoint`.
    [ASSUMPTION] The backend uses the device flow (another team used it). If World only offers authorization-code, replace `startDeviceFlow` / `pollDeviceToken` with a redirect + code exchange; `validateIdToken` stays unchanged. Confirm at the World booth.
-4. `cd server && npm i && npm test && npm start` (12 tests incl. forged signature, `alg: none`, wrong iss/aud, expired, stale login, denied/expired mapping).
+4. `cd server && npm i && npm test && npm start` (13 tests incl. forged signature, `alg: none`, wrong iss/aud, expired, stale login, denied/expired mapping).
 
 ## Evidence for judging
 - [ ] Video: **Deny** in World App → "Nothing changed", no transaction

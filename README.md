@@ -13,7 +13,7 @@ Specs: `/specs` · Prompts: `/prompts` · AI disclosure: `AI_USAGE.md`
 |---|---|
 | `src/`, `test/` | Contracts + 45 Foundry tests (unit, fuzz, invariant, EIP-712 compatibility with the backend) |
 | `cre/` | Chainlink CRE workflow: verify on registration, daily re-check, auto-freeze |
-| `server/` | Backend: World ID Agent Pass + validation, approval signer, poisoning history scan (12 tests) |
+| `server/` | Backend: World ID Agent Pass + validation, approval signer, poisoning history scan (13 tests) |
 | `web/` | Web app (no build step): Pay, Undo window, History shield, Business, Agent wallet |
 | `agent/` | An AI agent paying a verified business by domain |
 | `specs/`, `prompts/` | Spec suite and prompts (ETHGlobal spec-driven rule) |
