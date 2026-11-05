@@ -11,7 +11,7 @@ Specs: `/specs` · Prompts: `/prompts` · AI disclosure: `AI_USAGE.md`
 ## What's in the repo
 | Folder | What |
 |---|---|
-| `src/`, `test/` | Contracts + 44 Foundry tests (unit, fuzz, invariant, EIP-712 compatibility with the backend) |
+| `src/`, `test/` | Contracts + 45 Foundry tests (unit, fuzz, invariant, EIP-712 compatibility with the backend) |
 | `cre/` | Chainlink CRE workflow: verify on registration, daily re-check, auto-freeze |
 | `server/` | Backend: World ID Agent Pass + validation, approval signer, poisoning history scan (12 tests) |
 | `web/` | Web app (no build step): Pay, Undo window, History shield, Business, Agent wallet |
@@ -49,7 +49,7 @@ CRE report: `abi.encode(bytes32 domainHash, address controller, bytes32 leiHash,
 
 ## Test
 ```
-forge test   # 44 tests: unit, fuzz, invariant (escrow always fully backed), EIP-712 compatibility
+forge test   # 45 tests: unit, fuzz, invariant (escrow always fully backed), EIP-712 compatibility
 ```
 
 ## Deploy

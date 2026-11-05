@@ -181,6 +181,14 @@ contract PayeeRegistry is IReceiver, IERC165 {
             return;
         }
 
+        // DNS confirms the current controller again: drop any key queued by an earlier hijack,
+        // otherwise anyone could execute it after the delay while the payee is Active.
+        if (p.pendingController != address(0)) {
+            p.pendingController = address(0);
+            p.controllerEta = 0;
+            emit ControllerChangeCancelled(d);
+        }
+
         p.leiHash = leiHash;
         p.status = Status.Active;
         p.verifiedAt = uint64(block.timestamp);

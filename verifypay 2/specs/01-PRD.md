@@ -60,7 +60,7 @@
 ## Demo success metrics
 - 4 on-chain tx shown on the explorer: escrow, undo, CRE verify, CRE freeze.
 - One Agent Pass denial and one approval shown live.
-- `forge test` green on screen (29+ tests incl. invariants).
+- `forge test` green on screen (45 tests incl. invariants).
 
 ## Explicit scope cuts
 ENS, mainnet, Circle Wallets (if behind), webhooks, GLEIF (if behind).

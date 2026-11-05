@@ -45,7 +45,7 @@ Before marking anything sponsor-related done, check SPONSOR_QUALIFICATION.md, cr
 The app, backend, deployment and agent are built in Arc Studio by following ARC_STUDIO_BUILD.md step by step. Claude Code supports that work: CRE workflow, tests, fixes, docs. `web/` and `server/` are the reference implementation Studio should match.
 
 ## What already exists (do not rebuild)
-- `src/`: PayeeRegistry, SafeSend (USDC + EURC), AgentWallet. `test/`: 44 Foundry tests incl. fuzz, invariants, EIP-712 compatibility.
+- `src/`: PayeeRegistry, SafeSend (USDC + EURC), AgentWallet. `test/`: 45 Foundry tests incl. fuzz, invariants, EIP-712 compatibility.
 - `cre/`: Chainlink CRE workflow (log trigger + cron, 2 DoH resolvers + GLEIF, writes onReport).
 - `server/`: Node 22 backend (one dep: viem). World Agent Pass device flow + ID-token validation (12 unit tests), EIP-712 approval signer, poisoning history scan, static hosting.
 - `web/`: no-build web app (viem from esm.sh): Pay, Undo window, History shield, Business, Agent wallet.

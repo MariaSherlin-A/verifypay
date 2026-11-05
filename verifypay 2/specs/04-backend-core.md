@@ -1,6 +1,6 @@
 # 04 · Backend core
 
-## Contracts (already implemented in /src, 29 tests passing)
+## Contracts (already implemented in /src, 45 tests passing)
 
 ### PayeeRegistry
 - `constructor(address forwarder, address expectedAuthor, address approvalSigner, uint64 changeDelay)`

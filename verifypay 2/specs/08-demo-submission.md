@@ -9,7 +9,7 @@
 | 1:20 | Restore → verify → Pay acme.com → one block | "Verified businesses settle instantly." |
 | 1:40 | Change payout → World App Deny → nothing changes → Approve → countdown + Cancel | "A stolen session can't redirect money. A real human must approve, and the old wallet can still cancel." |
 | 2:05 | Terminal: `node agent/agent-pay.mjs acme.com 1.25` → paid; freeze Acme → agent refused; raise limits → World App | "AI agents pay businesses by name, within caps, and can't be poisoned. Spending more needs a human." |
-| 2:30 | Arc Studio project, architecture diagram, `forge test` (44 tests, invariants) | "Built in Arc Studio; any wallet or agent can call `inspectRecipient()`." |
+| 2:30 | Arc Studio project, architecture diagram, `forge test` (45 tests, invariants) | "Built in Arc Studio; any wallet or agent can call `inspectRecipient()`." |
 | 2:50 | Close | "Pay the business, not the address." |
 
 ## Demo-failure fallback

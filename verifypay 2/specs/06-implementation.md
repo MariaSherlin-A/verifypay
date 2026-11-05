@@ -4,7 +4,7 @@ Hacking started Nov 5, 21:00 IST. Submission: **Sun Nov 8, 09:00 IST**. Hour 0 =
 
 | ID | Task | Files | Acceptance criteria | Tests | Deps | Est | Status |
 |---|---|---|---|---|---|---|---|
-| T1 | Contracts + tests (Registry, SafeSend USDC+EURC, AgentWallet, EIP-712 compat) | src/, test/ | 44 tests incl. fuzz + invariants pass | forge test | – | – | DONE |
+| T1 | Contracts + tests (Registry, SafeSend USDC+EURC, AgentWallet, EIP-712 compat) | src/, test/ | 45 tests incl. fuzz + invariants pass | forge test | – | – | DONE |
 | T2 | Push repo to GitHub; import into Arc Studio "From GitHub"; run tests in Studio (ARC_STUDIO_BUILD.md steps 0–1) | – | Studio project URL saved in README | Studio test run | T1 | 0.5h | |
 | T3 | Deploy to Arc Testnet from Studio (ARC_STUDIO_BUILD.md step 2) | script/ | Registry + SafeSend addresses in README, verified on explorer | – | T2 | 0.5h | |
 | T4 | CRE: install CLI, `cre login`, `cre generate-bindings evm`, typecheck | cre/ | `npm run typecheck` clean | – | T3 | 1h | |

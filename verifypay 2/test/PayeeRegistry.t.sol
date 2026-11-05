@@ -164,6 +164,22 @@ contract PayeeRegistryTest is Base {
         reg.requestPayoutChange(d2, l, block.timestamp + 1, sig);
     }
 
+    /// Owner restores DNS after a hijack: the queued hijacker key must be dropped, not executable later.
+    function test_ReverifySameControllerClearsQueuedHijack() public {
+        _register("acme.com", acmeKey);
+        _report(acme, makeAddr("hijacker"), reg.ACTION_VERIFY()); // DNS hijacked: frozen + queued
+        _report(acme, acmeKey, reg.ACTION_VERIFY()); // DNS restored by the real owner
+
+        PayeeRegistry.Payee memory p = reg.getPayee(acme);
+        assertEq(uint8(p.status), uint8(PayeeRegistry.Status.Active));
+        assertEq(p.pendingController, address(0));
+        assertEq(p.controller, acmeKey);
+
+        vm.warp(block.timestamp + DELAY);
+        vm.expectRevert(PayeeRegistry.NothingPending.selector);
+        reg.executeControllerChange(acme);
+    }
+
     function test_DomainEnumeration() public {
         _register("acme.com", acmeKey);
         reg.requestRegistration("acme.com"); // re-request does not duplicate
