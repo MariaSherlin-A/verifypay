@@ -78,7 +78,7 @@ git -C lib/forge-std checkout v1.17.0
 git add -A
 git status                                       # confirm: NO .env files, NO keys, docs/ IS included
 git commit -m "VerifyPay: contracts, tests, CRE workflow, backend, web app, specs"
-git remote add origin https://github.com/Sherly-star/verifypay.git
+git remote add origin https://github.com/MariaSherlin-A/verifypay.git
 git push -u origin main
 ```
 The repo must be **public** (ETHGlobal rule). From here on, **commit after every step** below (judges check history).
@@ -96,9 +96,9 @@ The repo must be **public** (ETHGlobal rule). From here on, **commit after every
 Studio clones only into an active sandbox ("No active sandbox for this app. Start a chat to provision a sandbox before cloning").
 1. **New project** → in the "What should we build?" box send a first message to provision the sandbox:
    ```
-   I'm going to import my GitHub repo Sherly-star/verifypay into this project. Don't generate any code yet; just wait.
+   I'm going to import my GitHub repo MariaSherlin-A/verifypay into this project. Don't generate any code yet; just wait.
    ```
-2. When the sandbox is ready, open the GitHub dialog (**From GitHub** / + → GitHub), pick **Sherly-star/verifypay** →
+2. When the sandbox is ready, open the GitHub dialog (**From GitHub** / + → GitHub), pick **MariaSherlin-A/verifypay** →
    **Clone into current project**. (The dialog says "Files land beside `src/` in your sandbox".)
 3. Then send:
 ```
