@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VerifyPay</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="logo">◆</span> VerifyPay <small>on Arc</small></div>
+    <div class="right">
+      <select id="token" aria-label="Stablecoin"><option value="usdc">USDC</option><option value="eurc">EURC</option></select>
+      <button id="connect">Connect wallet</button>
+    </div>
+  </header>
+
+  <nav role="tablist">
+    <button class="tab active" data-tab="pay">Pay</button>
+    <button class="tab" data-tab="pending">Undo window</button>
+    <button class="tab" data-tab="shield">History shield</button>
+    <button class="tab" data-tab="business">Business</button>
+    <button class="tab" data-tab="agent">Agent wallet</button>
+  </nav>
+
+  <main>
+    <section id="pay" class="panel active">
+      <h1>Pay the business, not the address</h1>
+      <label>Recipient (domain like <code>acme.com</code> or an address)
+        <input id="recipient" placeholder="acme.com or 0x…" autocomplete="off" />
+      </label>
+      <div id="verdict" class="chip" aria-live="polite"></div>
+      <div id="addrDiff" class="mono"></div>
+      <label>Amount <input id="amount" type="number" min="0" step="0.01" placeholder="500" /></label>
+      <button id="payBtn" class="primary" disabled>Pay</button>
+      <p id="payMsg" class="msg"></p>
+    </section>
+
+    <section id="pending" class="panel">
+      <h1>Undo window</h1>
+      <p class="sub">Payments to look-alike or first-time addresses wait here. Undo returns 100% on-chain.</p>
+      <div id="pendingList"></div>
+    </section>
+
+    <section id="shield" class="panel">
+      <h1>History shield</h1>
+      <p class="sub">Look-alike addresses planted in your history by zero-value or dust transfers. Never copy from these rows.</p>
+      <button id="scanBtn">Scan my history</button>
+      <div id="scanList"></div>
+    </section>
+
+    <section id="business" class="panel">
+      <h1>Your business</h1>
+      <label>Domain <input id="bizDomain" placeholder="acme.com" autocomplete="off" /></label>
+      <div class="card">
+        <b>1. Add this DNS TXT record</b>
+        <div class="mono" id="txtRecord">Connect a wallet first</div>
+        <button id="copyTxt">Copy</button>
+      </div>
+      <div class="card">
+        <b>2. Ask Chainlink CRE to verify it</b>
+        <button id="registerBtn">Request verification</button>
+      </div>
+      <div class="card"><b>Status</b><div id="bizStatus">–</div></div>
+      <div class="card">
+        <b>Change payout wallet</b>
+        <p class="sub">Needs a fresh World ID Agent Pass check, then a public delay. Your current wallet can cancel.</p>
+        <input id="newPayout" placeholder="new payout 0x…" />
+        <button id="changeBtn">Verify with World ID</button>
+        <div id="agentPassBox"></div>
+        <div id="changeBox"></div>
+      </div>
+      <p id="bizMsg" class="msg"></p>
+    </section>
+
+    <section id="agent" class="panel">
+      <h1>Agent wallet</h1>
+      <p class="sub">Your AI agent can pay only CRE-verified businesses, by domain, within caps. Raising caps needs World ID.</p>
+      <div class="card"><div id="agentInfo">–</div></div>
+      <div class="card">
+        <b>Raise limits</b>
+        <input id="perPayment" type="number" placeholder="per payment (e.g. 100)" />
+        <input id="perDay" type="number" placeholder="per day (e.g. 300)" />
+        <button id="raiseBtn">Verify with World ID</button>
+        <div id="raiseBox"></div>
+      </div>
+      <p id="agentMsg" class="msg"></p>
+    </section>
+  </main>
+  <footer>Arc Testnet · Chainlink CRE · World ID Agent Pass</footer>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "chainSelectorName": "arc-testnet",
+  "registryAddress": "0xYOUR_PAYEE_REGISTRY_ON_ARC_TESTNET",
+  "schedule": "0 0 * * *",
+  "requireDnssec": false,
+  "gasLimit": "500000"
+}
