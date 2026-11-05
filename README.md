@@ -33,6 +33,15 @@ cd server && cp .env.example .env   # fill addresses, signer key, World client i
 npm i && npm test && npm start      # http://localhost:8787
 ```
 
+## Deployed on Arc Testnet (chain 5042002)
+| Contract | Address | Deploy tx |
+|---|---|---|
+| PayeeRegistry | [0xc2035DA8766Fa4F68D405857A155dB52F15790cc](https://explorer.testnet.arc.io/address/0xc2035DA8766Fa4F68D405857A155dB52F15790cc) | [0x79b6…722d](https://explorer.testnet.arc.io/tx/0x79b6d292ce666895904afdce69c42837e3348ee6bc2c48d6b8e604094938722d) |
+| SafeSend | [0x88E2AFe1308CA7127D1c11926Dd4879c8b8e1924](https://explorer.testnet.arc.io/address/0x88E2AFe1308CA7127D1c11926Dd4879c8b8e1924) | [0x6666…1fa2](https://explorer.testnet.arc.io/tx/0x66663a183e699f7f822a82963bbb354ec0cf3965729400690289e8a61b6b1fa2) |
+| AgentWallet | [0xe905031D8C16d668282d917182D829CAc6C45358](https://explorer.testnet.arc.io/address/0xe905031D8C16d668282d917182D829CAc6C45358) | [0xf4ba…b240](https://explorer.testnet.arc.io/tx/0xf4bab76f652fd64551b37306021b6c3c916c4f42b187bd56e02789476c57b240) |
+
+Constructor args: forwarder `0x6E9EE680ef59ef64Aa8C7371279c27E496b5eDc1` (CRE simulation), expectedAuthor `0x0`, approvalSigner `0xDAFC6716eaBF0cEEe540a280b9974C60Ba2FC65e`, changeDelay 120 s, undoWindow 600 s, tokens USDC + EURC, AgentWallet owner `0x195de40f4f9F43ab52aDc83e04183dd215317876`, agent `0x51e48b2EF12e7008bA24cEe6A38a0e2ad64aA0a6`. Deployed and source-verified from Arc Studio.
+
 ## Contracts (`src/`)
 | Contract | Key functions |
 |---|---|

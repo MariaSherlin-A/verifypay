@@ -5,8 +5,8 @@ Hacking started Nov 5, 21:00 IST. Submission: **Sun Nov 8, 09:00 IST**. Hour 0 =
 | ID | Task | Files | Acceptance criteria | Tests | Deps | Est | Status |
 |---|---|---|---|---|---|---|---|
 | T1 | Contracts + tests (Registry, SafeSend USDC+EURC, AgentWallet, EIP-712 compat) | src/, test/ | 45 tests incl. fuzz + invariants pass | forge test | – | – | DONE |
-| T2 | Push repo to GitHub; import into Arc Studio "From GitHub"; run tests in Studio (ARC_STUDIO_BUILD.md steps 0–1) | – | Studio project URL saved in README | Studio test run | T1 | 0.5h | |
-| T3 | Deploy to Arc Testnet from Studio (ARC_STUDIO_BUILD.md step 2) | script/ | Registry + SafeSend addresses in README, verified on explorer | – | T2 | 0.5h | |
+| T2 | Push repo to GitHub; import into Arc Studio "From GitHub"; run tests in Studio (ARC_STUDIO_BUILD.md steps 0–1) | – | Studio project URL saved in README | Studio test run | T1 | 0.5h | DONE (45 tests in Studio) |
+| T3 | Deploy to Arc Testnet from Studio (ARC_STUDIO_BUILD.md step 2) | script/ | Registry + SafeSend addresses in README, verified on explorer | – | T2 | 0.5h | DONE |
 | T4 | CRE: install CLI, `cre login`, `cre generate-bindings evm`, typecheck | cre/ | `npm run typecheck` clean | – | T3 | 1h | |
 | T5 | **CRE verify broadcast** on a real domain TXT | cre/ | onReport VERIFY tx on Arc explorer | – | T4 | 1h | |
 | T6 | **CRE freeze broadcast** (delete TXT, cron trigger) | cre/ | onReport FREEZE tx on explorer | – | T5 | 0.5h | |
