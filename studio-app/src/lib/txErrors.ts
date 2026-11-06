@@ -62,6 +62,9 @@ export function decodeTxError(e: unknown): TxFailure {
       }
       return { kind: 'other', message: reverted.reason ?? reverted.shortMessage };
     }
+    if (/rate limit|exceeds defined limit/i.test(e.shortMessage)) {
+      return { kind: 'other', message: 'The public Arc testnet RPC is busy (rate limit). Nothing was sent. Wait about 30 seconds and press again.' };
+    }
     return { kind: 'other', message: e.shortMessage };
   }
   return { kind: 'other', message: e instanceof Error ? e.message : String(e) };
