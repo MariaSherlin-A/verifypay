@@ -44,7 +44,13 @@ const readSelectedAccount = async (provider: EIP1193Provider): Promise<Address |
   return first ? getAddress(first) : null;
 };
 
-const hexToChainId = (id: string): number => (id.startsWith('0x') ? parseInt(id, 16) : Number(id));
+/** The wallet's own throttling error (MetaMask: "Request is being rate limited", code -32005 / HTTP 429 upstream). */
+const isWalletRateLimit = (e: unknown): boolean => {
+  const text = e instanceof Error ? `${e.message} ${(e as { details?: string }).details ?? ''}` : String(e);
+  return /rate limit|-32005|429/i.test(text);
+};
+
+const hexToChainId =(id: string): number => (id.startsWith('0x') ? parseInt(id, 16) : Number(id));
 
 /** The chain the injected wallet is on RIGHT NOW (eth_chainId straight from the provider, never from our Arc RPC client). */
 const readWalletChainId = async (provider: EIP1193Provider): Promise<number> => hexToChainId(await provider.request({ method: 'eth_chainId' }));
@@ -53,7 +59,8 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
   const queryClient = useQueryClient();
   const chain = useMemo(() => arcChainFromConfig(config), [config]);
   const publicClient = useMemo(
-    () => createPublicClient({ chain, transport: http(config.rpcUrl) }),
+    // The public Arc RPC throttles bursts (HTTP 429 / -32005). viem retries exactly those with a growing delay.
+    () => createPublicClient({ chain, transport: http(config.rpcUrl, { retryCount: 6, retryDelay: 1000 }) }),
     [chain, config.rpcUrl],
   );
 
@@ -248,7 +255,16 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         }
         // Simulate first so a revert comes back as a named custom error instead of a wallet gas-estimation failure.
         await publicClient.simulateContract({ ...params, account });
-        hash = await wc.writeContract({ ...params, account, chain });
+        try {
+          hash = await wc.writeContract({ ...params, account, chain });
+        } catch (e) {
+          // MetaMask reads nonce and gas from the same public Arc RPC; when that RPC throttles it, MetaMask answers
+          // "Request is being rate limited" and nothing was sent. Wait, then ask the wallet once more.
+          if (!isWalletRateLimit(e)) throw e;
+          setTx({ phase: 'wallet', label: `${label} (Arc RPC busy, retrying…)` });
+          await new Promise((r) => setTimeout(r, 4000));
+          hash = await wc.writeContract({ ...params, account, chain });
+        }
         setTx({ phase: 'confirming', label, hash });
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         if (receipt.status !== 'success') throw new Error(`Transaction reverted on chain: ${hash}`);

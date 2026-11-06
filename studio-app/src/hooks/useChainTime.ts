@@ -16,7 +16,9 @@ export function useChainTime(): ChainTime {
   const block = useQuery({
     queryKey: ['latest-block-time', config.chainId],
     queryFn: async () => Number((await publicClient.getBlock({ blockTag: 'latest' })).timestamp),
-    refetchInterval: 3000,
+    // Countdowns tick locally between reads, so a 12 s refresh is enough and keeps the public Arc RPC (shared with the
+    // wallet) from throttling MetaMask.
+    refetchInterval: 12_000,
     retry: false,
   });
 
