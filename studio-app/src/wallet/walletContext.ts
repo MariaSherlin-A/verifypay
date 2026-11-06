@@ -36,6 +36,8 @@ export interface WalletContextValue {
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => void;
+  /** Opens the wallet's account picker (wallet_requestPermissions), then follows the account the wallet reports as selected. */
+  switchAccount: () => Promise<void>;
   switchToArc: () => Promise<void>;
   /** Simulates, sends, and waits for the receipt. Throws the original error after recording it in `tx`. */
   write: (params: WriteParams, label?: string) => Promise<{ hash: Hex; receipt: TransactionReceipt }>;

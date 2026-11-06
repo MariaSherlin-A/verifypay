@@ -33,6 +33,17 @@ const getProvider = (): EIP1193Provider | undefined => {
   return isProvider(candidate) ? candidate : undefined;
 };
 
+/** Makes the wallet show its account picker (MetaMask: the "connect to this site" account list). */
+const requestAccountPicker = (provider: EIP1193Provider) =>
+  provider.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
+
+/** The account the wallet reports as selected: eth_accounts[0]. Never prompts. */
+const readSelectedAccount = async (provider: EIP1193Provider): Promise<Address | null> => {
+  const accounts = await provider.request({ method: 'eth_accounts' });
+  const first = accounts[0];
+  return first ? getAddress(first) : null;
+};
+
 const hexToChainId = (id: string): number => (id.startsWith('0x') ? parseInt(id, 16) : Number(id));
 
 /** The chain the injected wallet is on RIGHT NOW (eth_chainId straight from the provider, never from our Arc RPC client). */
@@ -92,10 +103,16 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
     setError(null);
     setIsConnecting(true);
     try {
-      const wc = walletClient();
-      const [first] = await wc.requestAddresses();
-      if (!first) throw new Error('The wallet did not return an account.');
-      setAccount(getAddress(first));
+      const provider = getProvider();
+      if (!provider) throw new Error('No browser wallet found. Install MetaMask or Rabby to continue.');
+      // An explicit connect always lets the user choose the account: if this site is already permitted
+      // (eth_requestAccounts would return silently), open the picker with wallet_requestPermissions.
+      const permitted = await provider.request({ method: 'eth_accounts' });
+      if (permitted.length > 0) await requestAccountPicker(provider);
+      else await provider.request({ method: 'eth_requestAccounts' });
+      const selected = await readSelectedAccount(provider);
+      if (!selected) throw new Error('The wallet did not return an account.');
+      setAccount(selected);
       setFlag(true);
       const current = await refreshChainId();
       if (current !== chain.id) await ensureArc();
@@ -104,7 +121,7 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
     } finally {
       setIsConnecting(false);
     }
-  }, [walletClient, chain.id, ensureArc, refreshChainId]);
+  }, [chain.id, ensureArc, refreshChainId]);
 
   const disconnect = useCallback(() => {
     setFlag(false);
@@ -112,6 +129,31 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
     setTx(null);
     setError(null);
   }, []);
+
+  /** Opens the wallet's account picker, then follows whichever account the wallet reports as selected. */
+  const switchAccount = useCallback(async () => {
+    setError(null);
+    const provider = getProvider();
+    if (!provider) {
+      setError('No browser wallet found. Install MetaMask or Rabby to continue.');
+      return;
+    }
+    try {
+      await requestAccountPicker(provider);
+      const selected = await readSelectedAccount(provider);
+      if (!selected) {
+        disconnect();
+        return;
+      }
+      setAccount(selected);
+      setFlag(true);
+      setTx(null);
+      await refreshChainId();
+    } catch (e) {
+      const failure = decodeTxError(e);
+      if (failure.kind !== 'rejected') setError(failure.message);
+    }
+  }, [disconnect, refreshChainId]);
 
   const switchToArc = useCallback(async () => {
     setError(null);
@@ -240,12 +282,13 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
       error,
       connect,
       disconnect,
+      switchAccount,
       switchToArc,
       write,
       tx,
       clearTx,
     }),
-    [config, chain, publicClient, hasProvider, account, chainId, isConnecting, error, connect, disconnect, switchToArc, write, tx, clearTx],
+    [config, chain, publicClient, hasProvider, account, chainId, isConnecting, error, connect, disconnect, switchAccount, switchToArc, write, tx, clearTx],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

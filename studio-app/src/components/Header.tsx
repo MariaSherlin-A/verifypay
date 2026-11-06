@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Copy, Loader2, LogOut, ShieldCheck, Wallet } from 'lucide-react';
+import { Check, Copy, Loader2, LogOut, ShieldCheck, Users, Wallet } from 'lucide-react';
 import { TokenEURC, TokenUSDC } from '@web3icons/react';
 import type { Address } from 'viem';
 import { useWallet } from '@/wallet/walletContext';
@@ -90,6 +90,34 @@ function NetworkBadge() {
   );
 }
 
+function SwitchAccountButton() {
+  const { switchAccount } = useWallet();
+  const [pending, setPending] = useState(false);
+
+  const run = async () => {
+    setPending(true);
+    try {
+      await switchAccount();
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={() => void run()}
+      disabled={pending}
+      aria-label="Switch account"
+      title="Choose which wallet account this site uses"
+      className="glass inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-medium text-[var(--ink)] transition hover:border-[var(--border-strong)] active:scale-[0.98] disabled:opacity-60"
+    >
+      {pending ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Users size={14} aria-hidden />}
+      <span className="hidden sm:inline">Switch account</span>
+    </button>
+  );
+}
+
 function Balances() {
   const { data, isLoading, error } = useBalances();
 
@@ -165,6 +193,7 @@ export function Header() {
             <>
               <Balances />
               <AddressChip address={account} />
+              <SwitchAccountButton />
               <button
                 type="button"
                 onClick={disconnect}
