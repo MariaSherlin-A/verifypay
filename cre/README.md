@@ -112,3 +112,7 @@ node runner.mjs --dry-run --recheck-now   # real DNS + workflow, no transactions
 node runner.mjs                           # broadcasting
 ```
 With deployment access, `cre workflow deploy` replaces the runner: the DON runs the same two triggers itself.
+
+**After a shutdown (Windows):** double-click `cre/runner/start.bat`. It opens https://verifypay-arc.vercel.app and starts the
+runner, which catches up on every registration it missed (`.state.json` keeps the last checked block). For an immediate
+re-check: `start.bat --recheck-now`. To start it automatically at login, put a shortcut to `start.bat` in `shell:startup`.
