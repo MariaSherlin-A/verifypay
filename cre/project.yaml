@@ -1,4 +1,5 @@
 staging-settings:
   rpcs:
     - chain-name: arc-testnet
-      url: https://rpc.testnet.arc.io
+      # Blockdaemon's Arc Testnet RPC (docs.arc.network); the public rpc.testnet.arc.io throttles per IP.
+      url: https://rpc.blockdaemon.testnet.arc.io

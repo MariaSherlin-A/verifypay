@@ -20,7 +20,7 @@ const STATE_FILE = fileURLToPath(new URL('./.state.json', import.meta.url))
 const config = JSON.parse(readFileSync(new URL('../verifypay-workflow/config.staging.json', import.meta.url), 'utf8'))
 
 const REGISTRY = process.env.REGISTRY_ADDRESS || config.registryAddress
-const RPC = process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.io'
+const RPC = process.env.ARC_RPC_URL || 'https://rpc.blockdaemon.testnet.arc.io' // Arc partner RPC (docs.arc.network); the public one throttles per IP
 const POLL_MS = Number(process.env.POLL_SECONDS || 20) * 1000
 const RECHECK_MS = Number(process.env.RECHECK_MINUTES || 30) * 60_000
 const CRE_BIN = process.env.CRE_BIN || 'cre'

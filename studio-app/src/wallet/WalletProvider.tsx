@@ -297,6 +297,7 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         void queryClient.invalidateQueries({ queryKey: ['payee'] }); // business status, queued changes
         void queryClient.invalidateQueries({ queryKey: ['counterparties'] }); // new Paid / released payments
         void queryClient.invalidateQueries({ queryKey: ['agent-wallet'] }); // limits, pause state, balance
+        void queryClient.invalidateQueries({ queryKey: ['my-payments'] }); // the new payment in "My payments"
         return { hash, receipt };
       } catch (e) {
         const failure = decodeTxError(e);

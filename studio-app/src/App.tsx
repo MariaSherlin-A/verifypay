@@ -10,6 +10,7 @@ import { HistoryShield } from '@/components/history/HistoryShield';
 import { TopNav } from '@/components/nav/TopNav';
 import { useTab } from '@/hooks/useTab';
 import { PayScreen } from '@/components/pay/PayScreen';
+import { RecentPayments } from '@/components/pay/RecentPayments';
 import { TxStatus } from '@/components/TxStatus';
 import { UndoWindow } from '@/components/undo/UndoWindow';
 import { WalletProvider } from '@/wallet/WalletProvider';
@@ -58,6 +59,7 @@ function Main() {
       {tab === 'pay' && (
         <>
           <PayScreen />
+          <RecentPayments />
           <UndoWindow />
           <HistoryShield />
         </>
