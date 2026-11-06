@@ -272,14 +272,11 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         if (walletChain !== chain.id) {
           throw new Error(`Your wallet is on chain ${walletChain}, not ${chain.name} (${chain.id}). Switch to Arc and try again.`);
         }
-        // MetaMask reads nonce and gas from the same public Arc RPC as this page; when that RPC throttles, the call fails
-        // with "rate limited" / "exceeds defined limit" BEFORE anything is sent. Wait and try again (4 s, 8 s, 12 s).
-        // Any other error (a revert, a rejection) is thrown immediately.
+        // Simulate first so a revert comes back as a named custom error instead of a wallet gas-estimation failure.
+        // Only this read is retried when the RPC is busy (4 s, 8 s, 12 s): nothing has been signed yet.
         for (let attempt = 0; ; attempt++) {
           try {
-            // Simulate first so a revert comes back as a named custom error instead of a wallet gas-estimation failure.
             await publicClient.simulateContract({ ...params, account });
-            hash = await wc.writeContract({ ...params, account, chain });
             break;
           } catch (e) {
             if (!isWalletRateLimit(e) || attempt >= 3) throw e;
@@ -288,6 +285,9 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
             setTx({ phase: 'wallet', label });
           }
         }
+        // The wallet is asked exactly once. Never re-prompt automatically: if the wallet's RPC failed after you confirmed,
+        // the transaction may still land, and a second prompt could pay twice.
+        hash = await wc.writeContract({ ...params, account, chain });
         setTx({ phase: 'confirming', label, hash });
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         if (receipt.status !== 'success') throw new Error(`Transaction reverted on chain: ${hash}`);
