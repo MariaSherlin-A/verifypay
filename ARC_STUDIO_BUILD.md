@@ -300,6 +300,7 @@ Then, from the owner wallet: fund the AgentWallet with USDC (transfer), and rais
 cre login
 # 8.1 bindings + types
 cd cre && cre generate-bindings evm
+cd contracts && npm i && cd ..
 cd verifypay-workflow && npm i && npm run typecheck && cd ..
 # 8.2 config (never commit .env)
 #   verifypay-workflow/config.staging.json -> "registryAddress": "<PayeeRegistry>"

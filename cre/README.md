@@ -41,14 +41,19 @@ Report sent to the contract: `abi.encode(bytes32 domainHash, address controller,
 ## Run it
 ```bash
 # 0. One time
-npm i -g @chainlink/cre-cli        # or the installer from docs.chain.link/cre
+# CRE CLI (official installer, docs.chain.link/cre/getting-started/cli-installation)
+#   Windows PowerShell: irm https://app.chain.link/cre/install.ps1 | iex
+#   macOS/Linux: see the docs page (install.sh)
+# Bun >= 1.2.21 is required by @chainlink/cre-sdk (engines.bun)
+cre version
 cre login
 
 # 1. Bindings from the contract ABI (re-run after any ABI change)
 cd cre
 cre generate-bindings evm
 
-# 2. Dependencies + typecheck
+# 2. Dependencies + typecheck (the generated bindings in contracts/ need their own npm i)
+cd contracts && npm i && cd ..
 cd verifypay-workflow && npm i && npm run typecheck && cd ..
 
 # 3. Config
