@@ -34,6 +34,8 @@ The History shield scans your recent token transfers for address-poisoning attem
 
 The Business tab lets a company register its domain (one DNS record, verified by Chainlink CRE), watch its status, cancel a suspicious change of controller, and change its payout wallet after a World ID check followed by a public delay.
 
+The How it works tab explains the protection end to end, lists every contract with explorer links, and shows a live Chainlink CRE verification read from the chain. The Builders tab has a copy-paste viem snippet for checking an address before paying it, plus a live checker.
+
 The Agent tab shows the wallet an AI agent pays from (limits, spending today, balance, pause state). The owner can fund it, lower its limits or pause it at any time; raising the limits needs a fresh World ID human check.
 
 The backend provides the World ID approval step, the address-poisoning history scan, and the app configuration at `/api/config`.
@@ -43,6 +45,7 @@ Public (safe for the browser):
 - `VITE_REGISTRY_ADDRESS`, `VITE_SAFESEND_ADDRESS`, `VITE_AGENT_WALLET_ADDRESS`: deployed contract addresses.
 - `VITE_EURC_ADDRESS`: EURC token address.
 - `VITE_APPROVAL_SIGNER_ADDRESS`: the approval signer address the backend must match.
+- `VITE_CRE_EVIDENCE_DOMAIN`, `VITE_CRE_EVIDENCE_TX`: the verified domain and the Chainlink CRE report transaction shown on the How it works tab.
 
 Server-only (never prefix with `VITE_`):
 - `APPROVAL_SIGNER_KEY`: private key of the approval signer.

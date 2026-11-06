@@ -106,3 +106,9 @@ Deployer (Circle smart account): 0xa3039A54856ed74B5AEc999EeF3fc954Ab010Cf6. All
 - `AgentScreen.tsx` reads `limits(token)`, `spentToday(token)`, `agent()`, `owner()`, `paused()` and the token balance of the AgentWallet (`src/lib/agentWallet.ts`), refreshed after every transaction (`write()` invalidates `['agent-wallet']`).
 - `LimitsCard.tsx`: one pair of inputs. Higher than current -> World ID (`raiseLimits` action; params `{wallet, token, perPayment, perDay}` as atomic-unit strings) then `AgentWallet.raiseLimits` with the backend's exact values. Only lower -> `lowerLimits`, no World ID. `OwnerControls.tsx`: `setPaused` and an ERC-20 `transfer` to fund the wallet. Everything is read-only unless the connected wallet is `owner()`.
 - `src/components/business/AgentPassPanel.tsx` is the shared World ID link / QR / code / outcome view (Business and Agent).
+
+## How it works and Builders tabs
+
+- `src/components/how/`: lead text (4 steps in a fixed order), `CreEvidence.tsx` (reads `getPayee` for `VITE_CRE_EVIDENCE_DOMAIN` and checks the receipt of `VITE_CRE_EVIDENCE_TX` for a `PayeeVerified` log), `ContractList.tsx` (addresses from `/api/config`, forwarder read live from `PayeeRegistry.forwarder()`).
+- `src/components/builders/Builders.tsx`: viem snippet built from the live config plus an `inspectRecipient` checker. A pasted address with wrong mixed-case checksum is rejected as invalid by viem, so look-alike tests must use lowercase.
+- The Mermaid diagrams (specs/02-TRD.md, docs/world-integration.md) wait for approval to add the `mermaid` package.

@@ -4,7 +4,9 @@ import { CheckCircle2, ExternalLink, Loader2, Timer } from 'lucide-react';
 import { TokenEURC, TokenUSDC } from '@web3icons/react';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { txUrl } from '@/lib/appConfig';
-import { isBlocked, isInstant, lookupRecipient, shortAddr } from '@/lib/recipient';
+import { findLookalike } from '@/lib/counterparties';
+import { isBlocked, isInstant, lookupRecipient, shortAddr, VERDICT } from '@/lib/recipient';
+import { useCounterparties } from '@/wallet/useCounterparties';
 import { useBalances } from '@/wallet/useBalances';
 import { useWallet } from '@/wallet/walletContext';
 import { VerdictChip } from './VerdictChip';
@@ -71,8 +73,14 @@ export function PayScreen() {
     refetchOnWindowFocus: false,
   });
 
-  const checking = typed.length > 0 && (!settled || lookup.isFetching);
+  const counterparties = useCounterparties();
   const recipient = settled && !lookup.isFetching ? lookup.data : undefined;
+  // Personal look-alike check (no DNS): only for addresses the registry does not know, against the addresses I have really paid.
+  const unknownAddress = recipient?.kind === 'address' && recipient.verdict === VERDICT.Unknown ? recipient : null;
+  const historyPending = unknownAddress !== null && account !== null && counterparties.isPending;
+  const personal = unknownAddress && counterparties.data ? findLookalike(unknownAddress.target, counterparties.data) : null;
+  const historyError = unknownAddress && counterparties.error ? counterparties.error.message : null;
+  const checking = typed.length > 0 && (!settled || lookup.isFetching || historyPending);
   const lookupError = settled && !lookup.isFetching && lookup.error ? lookup.error : null;
 
   const amountState = amountText.trim() ? parseAmount(amountText, tokenKey) : null;
@@ -117,7 +125,9 @@ export function PayScreen() {
           />
         </div>
 
-        <VerdictChip state={{ checking, error: lookupError, input, recipient }} />
+        <VerdictChip
+          state={{ checking, error: lookupError, input, recipient, personal, historyError, historyNeedsWallet: unknownAddress !== null && account === null }}
+        />
 
         <div className="grid gap-5 sm:grid-cols-[auto_1fr]">
           <fieldset>

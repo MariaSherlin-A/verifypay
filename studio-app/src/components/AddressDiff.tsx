@@ -6,11 +6,14 @@ export function AddressDiff({
   real,
   pastedLabel = 'You pasted',
   realLabel = 'Real payee',
+  lowercase = false,
 }: {
   pasted: string;
   real: string;
   pastedLabel?: string;
   realLabel?: string;
+  /** Show both addresses in lowercase so the character-by-character comparison is not distorted by checksum casing. */
+  lowercase?: boolean;
 }) {
   let segments: { ch: string; differs: boolean }[];
   try {
@@ -18,6 +21,7 @@ export function AddressDiff({
   } catch {
     segments = [...pasted].map((ch) => ({ ch, differs: false })); // not a valid address: show it unmarked
   }
+  if (lowercase) segments = segments.map((s) => ({ ...s, ch: s.ch.toLowerCase() }));
   return (
     <div className="mono mt-3 space-y-1.5 break-all text-[13px] font-normal leading-relaxed">
       <p>
@@ -36,7 +40,7 @@ export function AddressDiff({
       <p>
         <span className="font-sans text-xs font-semibold uppercase tracking-[0.08em] opacity-80">{realLabel} </span>
         <br />
-        {real}
+        {lowercase ? real.toLowerCase() : real}
       </p>
     </div>
   );

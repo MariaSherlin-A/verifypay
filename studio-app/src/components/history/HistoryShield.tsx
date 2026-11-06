@@ -4,6 +4,7 @@ import { ExternalLink, Info, Loader2, RefreshCw, ShieldAlert, ShieldCheck, XCirc
 import { AddressDiff } from '@/components/AddressDiff';
 import { fetchHistoryScan, type PoisoningAttempt } from '@/lib/historyScan';
 import { shortAddr } from '@/lib/recipient';
+import { useCounterparties } from '@/wallet/useCounterparties';
 import { formatUnitsExact, usdcDecimalsFor } from '@/onchain-money';
 import { EURC_EXPECTED_DECIMALS } from '@/wallet/useBalances';
 import { useWallet } from '@/wallet/walletContext';
@@ -51,9 +52,24 @@ function AttemptCard({ attempt }: { attempt: PoisoningAttempt }) {
 
 function ShieldBody({ account }: { account: Address }) {
   const scan = useMutation({ mutationFn: () => fetchHistoryScan(account) });
+  const counterparties = useCounterparties();
+
+  const n = counterparties.data?.length;
 
   return (
     <div>
+      <p className="mb-4 flex items-start gap-2 text-sm text-[var(--ink-2)]" aria-live="polite">
+        <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[var(--accent-hover)]" aria-hidden />
+        {counterparties.isPending ? (
+          <span>Reading the addresses you have paid…</span>
+        ) : counterparties.isError ? (
+          <span>Could not read the addresses you have paid: {counterparties.error.message}</span>
+        ) : (
+          <span>
+            Protecting {n} {n === 1 ? 'address' : 'addresses'} you&apos;ve paid.
+          </span>
+        )}
+      </p>
       <button
         type="button"
         onClick={() => scan.mutate()}

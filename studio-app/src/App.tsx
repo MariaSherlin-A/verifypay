@@ -4,6 +4,8 @@ import { fetchAppConfig } from '@/lib/appConfig';
 import { Header } from '@/components/Header';
 import { AgentScreen } from '@/components/agent/AgentScreen';
 import { BusinessScreen } from '@/components/business/BusinessScreen';
+import { Builders } from '@/components/builders/Builders';
+import { HowItWorks } from '@/components/how/HowItWorks';
 import { HistoryShield } from '@/components/history/HistoryShield';
 import { TopNav } from '@/components/nav/TopNav';
 import { useTab } from '@/hooks/useTab';
@@ -62,6 +64,8 @@ function Main() {
       )}
       {tab === 'business' && <BusinessScreen />}
       {tab === 'agent' && <AgentScreen />}
+      {tab === 'how' && <HowItWorks />}
+      {tab === 'builders' && <Builders />}
       <div className="sticky bottom-4 z-30 empty:hidden">
         <TxStatus />
       </div>

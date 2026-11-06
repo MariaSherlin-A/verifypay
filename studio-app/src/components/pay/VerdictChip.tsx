@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, Info, Loader2, Lock, ShieldAlert, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AddressDiff } from '@/components/AddressDiff';
+import type { Address } from 'viem';
 import { shortAddr, STATUS, VERDICT, type Recipient } from '@/lib/recipient';
 
 type Tone = 'ok' | 'frozen' | 'warn' | 'bad' | 'info';
@@ -28,11 +29,17 @@ export interface VerdictState {
   error: Error | null;
   input: string;
   recipient: Recipient | undefined;
+  /** An address this wallet has paid before that this unknown address imitates (same first 4 + last 4 hex characters). */
+  personal?: Address | null;
+  /** Why the payment-history check could not run (real error), shown under the verdict. */
+  historyError?: string | null;
+  /** The address is unknown to the registry and no wallet is connected, so the history check cannot run. */
+  historyNeedsWallet?: boolean;
 }
 
 /** The live verdict for the typed recipient. The container stays mounted so screen readers announce every change politely. */
 export function VerdictChip({ state }: { state: VerdictState }) {
-  const { checking, error, input, recipient } = state;
+  const { checking, error, input, recipient, personal, historyError, historyNeedsWallet } = state;
   let body: ReactNode = null;
 
   if (!input.trim()) {
@@ -100,7 +107,20 @@ export function VerdictChip({ state }: { state: VerdictState }) {
           </p>
           <p className="mt-1 pl-[34px] text-sm">If you send anyway, the payment waits 10 minutes with Undo.</p>
           <div className="pl-[34px]">
-            <AddressDiff pasted={recipient.target} real={recipient.imitated} />
+            <AddressDiff pasted={recipient.target} real={recipient.imitated} lowercase />
+          </div>
+        </div>
+      );
+    } else if (personal) {
+      body = (
+        <div className="rounded-2xl border-2 border-[#ba2b4c] bg-[#fdecef] p-4 text-[#8f1d38]">
+          <p className="flex items-start gap-2.5 text-base font-semibold sm:text-lg">
+            <ShieldAlert size={22} className="mt-0.5 shrink-0" aria-hidden />
+            <span>Look-alike of an address you paid before ({shortAddr(personal)}). Likely address poisoning.</span>
+          </p>
+          <div className="pl-[34px]">
+            <AddressDiff pasted={recipient.target} real={personal} realLabel="Address you paid before" lowercase />
+            <p className="mt-3 text-xs">Held for 10 minutes. Not a verified business, so this check uses your own payment history.</p>
           </div>
         </div>
       );
@@ -113,9 +133,19 @@ export function VerdictChip({ state }: { state: VerdictState }) {
     }
   }
 
+  const note =
+    recipient?.kind === 'address' && recipient.verdict === VERDICT.Unknown && !checking && !error
+      ? historyError
+        ? `Could not check your payment history: ${historyError}`
+        : historyNeedsWallet
+          ? 'Connect your wallet to also check this address against the addresses you have paid before.'
+          : null
+      : null;
+
   return (
     <div aria-live="polite" className="min-h-0">
       {body}
+      {note && <p className="mt-2 text-xs text-[var(--muted)]">{note}</p>}
     </div>
   );
 }
