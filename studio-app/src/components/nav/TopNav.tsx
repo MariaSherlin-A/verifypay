@@ -3,8 +3,7 @@ import type { Tab } from '@/hooks/useTab';
 const ITEMS: { id: Tab; label: string; enabled: boolean }[] = [
   { id: 'pay', label: 'Pay', enabled: true },
   { id: 'business', label: 'Business', enabled: true },
-  // The Agent wallet screen is the next build step; the tab is shown but cannot be opened yet.
-  { id: 'agent', label: 'Agent', enabled: false },
+  { id: 'agent', label: 'Agent', enabled: true },
 ];
 
 export function TopNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {

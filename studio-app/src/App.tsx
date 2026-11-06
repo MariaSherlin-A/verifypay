@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { fetchAppConfig } from '@/lib/appConfig';
 import { Header } from '@/components/Header';
+import { AgentScreen } from '@/components/agent/AgentScreen';
 import { BusinessScreen } from '@/components/business/BusinessScreen';
 import { HistoryShield } from '@/components/history/HistoryShield';
 import { TopNav } from '@/components/nav/TopNav';
@@ -60,6 +61,7 @@ function Main() {
         </>
       )}
       {tab === 'business' && <BusinessScreen />}
+      {tab === 'agent' && <AgentScreen />}
       <div className="sticky bottom-4 z-30 empty:hidden">
         <TxStatus />
       </div>

@@ -256,6 +256,7 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         void queryClient.invalidateQueries({ queryKey: ['balances'] });
         void queryClient.invalidateQueries({ queryKey: ['escrows'] }); // held payments: re-read pendings(id)
         void queryClient.invalidateQueries({ queryKey: ['payee'] }); // business status, queued changes
+        void queryClient.invalidateQueries({ queryKey: ['agent-wallet'] }); // limits, pause state, balance
         return { hash, receipt };
       } catch (e) {
         const failure = decodeTxError(e);

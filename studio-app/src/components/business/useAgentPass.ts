@@ -58,7 +58,7 @@ export function useAgentPass() {
 
   /** Starts the flow and resolves with the backend's approval once the person approved, or null in every other case. */
   const start = useCallback(
-    async (action: 'payoutChange', params: Record<string, string>): Promise<AgentPassApproval | null> => {
+    async (action: 'payoutChange' | 'raiseLimits', params: Record<string, string>): Promise<AgentPassApproval | null> => {
       run.current += 1;
       const id = run.current;
       setState({ kind: 'starting' });

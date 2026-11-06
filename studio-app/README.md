@@ -34,6 +34,8 @@ The History shield scans your recent token transfers for address-poisoning attem
 
 The Business tab lets a company register its domain (one DNS record, verified by Chainlink CRE), watch its status, cancel a suspicious change of controller, and change its payout wallet after a World ID check followed by a public delay.
 
+The Agent tab shows the wallet an AI agent pays from (limits, spending today, balance, pause state). The owner can fund it, lower its limits or pause it at any time; raising the limits needs a fresh World ID human check.
+
 The backend provides the World ID approval step, the address-poisoning history scan, and the app configuration at `/api/config`.
 
 ### Environment variables

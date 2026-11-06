@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExternalLink, Loader2, ShieldCheck, XCircle } from 'lucide-react';
+import { Loader2, ShieldCheck } from 'lucide-react';
 import { getAddress, isAddress, type Address, type Hex } from 'viem';
 import type { AgentPassApproval } from '@/lib/agentPass';
 import { ZERO_ADDRESS, type Payee } from '@/lib/payee';
@@ -7,7 +7,7 @@ import { REGISTRY_ABI } from '@/lib/txErrors';
 import { shortAddr } from '@/lib/recipient';
 import { useChainTime } from '@/hooks/useChainTime';
 import { useWallet } from '@/wallet/walletContext';
-import { QrCode } from './QrCode';
+import { AgentPassPanel } from './AgentPassPanel';
 import { useAgentPass } from './useAgentPass';
 
 const input = 'min-h-12 w-full rounded-2xl border border-[var(--border)] bg-white/80 px-4 mono text-sm outline-none focus:border-[var(--border-strong)]';
@@ -96,8 +96,6 @@ export function PayoutChange({ domainHash, payee }: { domainHash: Hex; payee: Pa
   else if (!account) blocked = 'Connect your wallet.';
   else if (!isController) blocked = `Only the controller wallet (${shortAddr(payee.controller)}) can change the payout wallet.`;
 
-  const link = pass.state.kind === 'waiting' ? (pass.state.session.verificationUriComplete ?? pass.state.session.verificationUri) : null;
-
   return (
     <section className="glass rounded-3xl p-5 sm:p-6" aria-labelledby="payout-title">
       <h2 id="payout-title" className="display text-xl font-semibold">
@@ -137,58 +135,7 @@ export function PayoutChange({ domainHash, payee }: { domainHash: Hex; payee: Pa
         Verify with World ID
       </button>
 
-      {pass.state.kind === 'waiting' && link && (
-        <div className="mt-4 grid gap-4 rounded-2xl border border-[var(--border)] bg-white/70 p-4 sm:grid-cols-[auto_1fr]" role="status">
-          <QrCode value={link} label="QR code for the World ID verification link" />
-          <div className="space-y-2">
-            <p className="text-sm">Open this link in World App, or scan the code, and approve the change.</p>
-            <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 break-all text-sm font-semibold text-[var(--accent-hover)] underline">
-              {link}
-              <ExternalLink size={14} aria-hidden />
-            </a>
-            <p className="text-sm">
-              Code <span className="mono tnum rounded-lg bg-[var(--surface-muted)] px-2 py-1 text-base font-semibold">{pass.state.session.userCode}</span>
-            </p>
-            <p className="flex items-center gap-2 text-sm text-[var(--muted)]">
-              <Loader2 size={14} className="animate-spin" aria-hidden />
-              Waiting for your approval (checking every {pass.state.session.interval} s)
-            </p>
-            <button type="button" className={ghost} onClick={pass.cancel}>
-              Cancel verification
-            </button>
-          </div>
-        </div>
-      )}
-
-      {pass.state.kind === 'not-approved' && (
-        <p className="mt-4 flex items-start gap-2 rounded-2xl bg-[var(--surface-muted)] p-4 text-sm" role="alert">
-          <XCircle size={18} className="mt-0.5 shrink-0 text-[var(--danger)]" aria-hidden />
-          <span>
-            <b>Not approved. Nothing changed.</b> No transaction was sent. ({pass.state.status}
-            {pass.state.detail ? `: ${pass.state.detail}` : ''})
-            {pass.state.status === 'unknown' && ' The backend no longer knows this verification session (it may have restarted). Start again.'}
-          </span>
-        </p>
-      )}
-
-      {pass.state.kind === 'error' && (
-        <div className="mt-4 rounded-2xl border border-[var(--danger)] bg-white/70 p-4 text-sm" role="alert">
-          <p>
-            <b>World ID check failed:</b> {pass.state.message}
-          </p>
-          <div className="mt-3 flex gap-2">
-            {pass.state.session ? (
-              <button type="button" className={ghost} disabled={busy} onClick={() => void resume()}>
-                Retry
-              </button>
-            ) : (
-              <button type="button" className={ghost} disabled={busy || !validPayout} onClick={() => void verify()}>
-                Try again
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <AgentPassPanel pass={pass} what="the change" busy={busy} canStartAgain={validPayout} onResume={() => void resume()} onStartAgain={() => void verify()} />
     </section>
   );
 }

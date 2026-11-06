@@ -99,4 +99,10 @@ Deployer (Circle smart account): 0xa3039A54856ed74B5AEc999EeF3fc954Ab010Cf6. All
 
 - Navigation is `?tab=` in the URL (`src/hooks/useTab.ts`); Pay = Pay + Undo window + History shield, Business = `BusinessScreen`, Agent is disabled until Step 6.5.
 - Payout change: `useAgentPass.ts` drives `POST /api/agent-pass/start` / `poll` (sequential polling every `interval` s; the backend reports World's `slow_down` as `pending`). Only an `approved` result leads to `requestPayoutChange(domainHash, newPayout, deadline, signature)` with the backend's exact values.
-- QR codes use the `qrcode` package (v1.5.x). It is installed because ConnectKit depends on it, but it is NOT declared in `package.json`; `src/types/qrcode.d.ts` provides its types. Declare it (`bun add qrcode`) when approved.
+- QR codes use the `qrcode` package (v1.5.4, declared in `package.json`); `src/types/qrcode.d.ts` provides its types (no @types package is installed).
+
+## Agent tab (`src/components/agent/`)
+
+- `AgentScreen.tsx` reads `limits(token)`, `spentToday(token)`, `agent()`, `owner()`, `paused()` and the token balance of the AgentWallet (`src/lib/agentWallet.ts`), refreshed after every transaction (`write()` invalidates `['agent-wallet']`).
+- `LimitsCard.tsx`: one pair of inputs. Higher than current -> World ID (`raiseLimits` action; params `{wallet, token, perPayment, perDay}` as atomic-unit strings) then `AgentWallet.raiseLimits` with the backend's exact values. Only lower -> `lowerLimits`, no World ID. `OwnerControls.tsx`: `setPaused` and an ERC-20 `transfer` to fund the wallet. Everything is read-only unless the connected wallet is `owner()`.
+- `src/components/business/AgentPassPanel.tsx` is the shared World ID link / QR / code / outcome view (Business and Agent).
