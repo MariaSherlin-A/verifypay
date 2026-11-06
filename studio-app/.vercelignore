@@ -1,0 +1,6 @@
+# The backend (server/) is hosted on Railway; Vercel serves only the Vite website.
+server/
+.env
+.env.*
+node_modules/
+dist/

@@ -8,6 +8,8 @@ Payments to verified businesses settle instantly. Payments to look-alike (poison
 addresses go into a 10-minute undo escrow. A Chainlink CRE workflow verifies each business's domain
 and re-checks it daily, freezing the payee the moment its DNS proof disappears.
 
+**Live app: https://verifypay-arc.vercel.app** (Arc Testnet; connect MetaMask, and the app adds the network)
+
 Bounties: **Arc: Best Smart Contracts with Advanced Stablecoin Logic** · **Chainlink: Best workflow with CRE** · **World: World ID Agent Pass**
 
 Specs: `/specs` · Prompts: `/prompts` · AI disclosure: `AI_USAGE.md`
@@ -45,6 +47,20 @@ A World ID approval end to end needs an Orb-verified human.
 - Arc Studio build: [ARC_STUDIO_BUILD.md](ARC_STUDIO_BUILD.md)
 - Chainlink CRE: [cre/README.md](cre/README.md) · [feedback](docs/chainlink-cre-feedback.md)
 - World Agent Pass: [docs/world-integration.md](docs/world-integration.md) · [debrief](docs/world-debrief.md)
+
+## Where everything runs
+| Part | Host | Link |
+|---|---|---|
+| Website (`studio-app/`, Vite + React, built in Arc Studio) | Vercel | https://verifypay-arc.vercel.app |
+| Backend (`studio-app/server`, Bun: World ID Agent Pass, EIP-712 approval signer, history scan) | Railway | https://backend-production-f785.up.railway.app/api/config |
+| Contracts, USDC, EURC | Arc Testnet (chain 5042002) | see "Deployed on Arc Testnet" below |
+| Chainlink CRE workflow (`cre/`) | CRE CLI simulator with `--broadcast` (DON deployment awaiting Chainlink access) | evidence in [docs/chainlink-cre-feedback.md](docs/chainlink-cre-feedback.md#evidence) |
+| World ID | World (`auth.world.org`) | — |
+| DNS proof for the demo business | Vercel DNS (`_verifypay.pay.chrsnikhil.info`) | — |
+
+The website forwards `/api/*` to the backend (`studio-app/vercel.json`). Secrets live only in Railway variables.
+Same-human World ID bindings are stored in a file on the backend, which resets when the backend redeploys
+(fine for a testnet demo; production would use a database).
 
 ## Run locally
 ```
