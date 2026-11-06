@@ -95,3 +95,20 @@ interactively and pick the trigger.
 - **`UnauthorizedForwarder` revert:** the registry was deployed with a different forwarder than the one the simulator uses.
 - **No write on VERIFY:** both resolvers must return the same `arc:` record; wait for DNS propagation, check `dig TXT _verifypay.<domain>`.
 - **Demo domain has no DNSSEC:** keep `"requireDnssec": false` for the demo; set `true` in production.
+
+## Automatic runs: `cre/runner` (until DON deployment access is granted)
+`cre/runner/runner.mjs` starts the **same workflow with the official CRE CLI**, automatically. It reimplements nothing.
+- It watches `PayeeRegistry` for `RegistrationRequested` (polling Arc every 20 s). For each **Pending** domain it runs trigger 0
+  (`cre workflow simulate … --broadcast --trigger-index 0 --evm-tx-hash <tx> --evm-event-index <i>`). Repeated requests for an
+  Active or Frozen domain are skipped, so nobody can burn the CRE wallet's gas by spamming `requestRegistration`.
+- Every `RECHECK_MINUTES` (default 30) it runs trigger 1, the re-check that freezes payees whose DNS proof is gone.
+- One CLI run at a time (CRE wallet nonce), and one retry after 20 s when the public Arc RPC answers 429.
+
+It needs the CRE CLI logged in (`cre login`, or `CRE_API_KEY`), Bun, and `cre/.env` with `CRE_ETH_PRIVATE_KEY`. It needs no
+inbound connection, so no tunnel. It runs wherever those are available; the demo runs it on the team laptop.
+```
+cd cre/runner && npm i
+node runner.mjs --dry-run --recheck-now   # real DNS + workflow, no transactions
+node runner.mjs                           # broadcasting
+```
+With deployment access, `cre workflow deploy` replaces the runner: the DON runs the same two triggers itself.

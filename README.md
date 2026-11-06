@@ -54,7 +54,7 @@ A World ID approval end to end needs an Orb-verified human.
 | Website (`studio-app/`, Vite + React, built in Arc Studio) | Vercel | https://verifypay-arc.vercel.app |
 | Backend (`studio-app/server`, Bun: World ID Agent Pass, EIP-712 approval signer, history scan) | Railway | https://backend-production-f785.up.railway.app/api/config |
 | Contracts, USDC, EURC | Arc Testnet (chain 5042002) | see "Deployed on Arc Testnet" below |
-| Chainlink CRE workflow (`cre/`) | CRE CLI simulator with `--broadcast` (DON deployment awaiting Chainlink access) | evidence in [docs/chainlink-cre-feedback.md](docs/chainlink-cre-feedback.md#evidence) |
+| Chainlink CRE workflow (`cre/`) | Official CRE CLI simulator with `--broadcast`, started automatically by `cre/runner` (see [cre/README.md](cre/README.md)); DON deployment awaiting Chainlink access | evidence in [docs/chainlink-cre-feedback.md](docs/chainlink-cre-feedback.md#evidence) |
 | World ID | World (`auth.world.org`) | — |
 | DNS proof for the demo business | Vercel DNS (`_verifypay.pay.chrsnikhil.info`) | — |
 

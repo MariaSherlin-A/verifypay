@@ -1,0 +1,7 @@
+{
+  "name": "verifypay-cre-runner",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node runner.mjs" },
+  "dependencies": { "viem": "2.34.0" }
+}
