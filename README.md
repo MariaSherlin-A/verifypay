@@ -1,127 +1,134 @@
-# VerifyPay: address-poisoning interceptor and self-freezing USDC settlement on Arc
+# VerifyPay
 
-Address poisoning has stolen **$83.8M** across **270M attempts**, and a single copy-paste cost **$50M** in December 2025.
-The scammer creates an address that starts and ends like your supplier's, plants it in your history with a zero-value
-transfer, and waits for you to copy it. VerifyPay adds the undo button that stablecoin payments are missing.
+**Address-poisoning protection and self-freezing USDC settlement on Arc.**
 
-Payments to verified businesses settle instantly. Payments to look-alike (poisoned) or first-time
-addresses go into a 10-minute undo escrow. A Chainlink CRE workflow verifies each business's domain
-and re-checks it daily, freezing the payee the moment its DNS proof disappears.
+Live application: https://verifypay-arc.vercel.app (Arc Testnet)
 
-**Live app: https://verifypay-arc.vercel.app** (Arc Testnet; connect MetaMask, and the app adds the network)
+## The problem
 
-Bounties: **Arc: Best Smart Contracts with Advanced Stablecoin Logic** · **Chainlink: Best workflow with CRE** · **World: World ID Agent Pass**
+Address poisoning is one of the most common ways stablecoins are stolen. An attacker creates an address that starts and
+ends with the same characters as one of your real counterparties, plants it in your transaction history with a zero-value
+transfer, and waits for you to copy the wrong one. Between July 2022 and June 2024 this caused 270 million attack
+transactions and $83.8 million in stolen stablecoins on Ethereum and BSC alone (Tsuchiya et al., arXiv:2501.16681).
+In December 2025 a single copy-paste mistake cost one user $50 million in USDT.
 
-Specs: `/specs` · Prompts: `/prompts` · AI disclosure: `AI_USAGE.md`
+Stablecoin transfers are final. There is no undo, and there is no on-chain way to know that an address really belongs to
+the business you intend to pay.
 
-## What's in the repo
-| Folder | What |
+## What VerifyPay does
+
+| Situation | Outcome |
 |---|---|
-| `src/`, `test/` | Contracts + 45 Foundry tests (unit, fuzz, invariant, EIP-712 compatibility with the backend) |
-| `cre/` | Chainlink CRE workflow: verify on registration, daily re-check, auto-freeze |
-| `server/` | Backend: World ID Agent Pass + validation, approval signer, poisoning history scan (13 tests) |
-| `studio-app/` | **The app built in Arc Studio** (Vite + React + viem, backend in `studio-app/server`): Pay, Undo window, History shield, Business, Agent wallet, How it works, Builders |
-| `web/` | Reference web app (no build step) that the Studio app was built to match |
-| `agent/` | An AI agent paying a verified business by domain |
-| `specs/`, `prompts/` | Spec suite and prompts (ETHGlobal spec-driven rule) |
+| Paying a business whose domain is verified | Settles instantly to the business's proven wallet |
+| Paying a look-alike of a verified wallet | Held in a 10-minute undo escrow, with a warning naming the imitated business |
+| Paying an address for the first time | Held in the same 10-minute undo escrow |
+| Paying a business that has been frozen | Rejected by the contract |
 
-**Built in Arc Studio:** project https://studio.arc.io/app/d07d3246-b875-45b4-9cf4-4f5bfde5aeed. Each screen is a
-separate `studio-app:` commit. The step-by-step guide is in [ARC_STUDIO_BUILD.md](ARC_STUDIO_BUILD.md).
+- **Verification by Chainlink CRE.** A business proves control of its domain with a DNS TXT record. A Chainlink CRE
+  workflow reads the record through two independent DNS-over-HTTPS resolvers, requires both to agree, and writes the
+  result to the registry on Arc. The same workflow re-checks every business on a schedule and freezes any business whose
+  proof has disappeared.
+- **Undo escrow on Arc.** Risky payments wait 10 minutes in the SafeSend contract. The sender can cancel and receive
+  the full amount back; after the window anyone can release the payment to the recipient.
+- **Human approval with World ID.** Changing a business's payout wallet, or raising the spending limits of an AI agent's
+  wallet, requires a fresh World ID approval from the same verified human, followed by a public delay that the current
+  wallet can cancel.
+- **A public check for builders.** Any wallet, dApp or agent can call `PayeeRegistry.inspectRecipient(address)` and
+  receive Verified, Frozen, Lookalike or Unknown before sending funds.
 
-## Live evidence (Arc Testnet)
-| What happened | Proof |
-|---|---|
-| Pasted a look-alike of the verified `pay.chrsnikhil.info` wallet: the payment was escrowed, recording reason 1 and the imitated wallet | [tx 0x96c1…a90d](https://explorer.testnet.arc.io/tx/0x96c19de51db4205da8129c1582f8c8ffa7c608c4e80e54b1629441b7e3e5a90d) |
-| Undo returned the USDC | [tx 0x404c…1c0d](https://explorer.testnet.arc.io/tx/0x404ce3057fe5e8eadbd49866c9afc33901c685257b1ddcfb6670e8a6dc3a1c0d) |
-| First-time escrow released after the window | [tx 0x69d9…c327](https://explorer.testnet.arc.io/tx/0x69d98f8a8882af2e574e3770527b901b316eb6f25016933129f496fc676cc327) |
-| Chainlink CRE verified `pay.chrsnikhil.info` from real DNS (Google + Cloudflare agreed) | [tx 0x4a12…0a3f](https://explorer.testnet.arc.io/tx/0x4a120ed62ec5cc0a1144ca464032e5b25ede941d93ba702e29f5c59880a40a3f) · [log](docs/chainlink-cre-feedback.md#evidence) |
-| AI agent refused without a human-approved limit / for an unverified domain | `OverPerPayment(1000000, 0)` / `PayeeNotActive(0)` (`agent/agent-pay.mjs`) |
-| World ID Agent Pass device flow against auth.world.org (user code issued, poll pending) | backend `/api/agent-pass/start` + `/poll` |
+## Sponsor tracks
 
-Honest status: CRE ran via `cre workflow simulate --broadcast` through the simulation forwarder, not yet on a live DON
-(see [docs/security.md](docs/security.md#testnet-caveat-the-simulation-forwarder-found-and-documented-by-us)).
-A World ID approval end to end needs an Orb-verified human.
-
-## Sponsor docs
-- Qualification checklist: [SPONSOR_QUALIFICATION.md](SPONSOR_QUALIFICATION.md)
-- Arc Studio build: [ARC_STUDIO_BUILD.md](ARC_STUDIO_BUILD.md)
-- Chainlink CRE: [cre/README.md](cre/README.md) · [feedback](docs/chainlink-cre-feedback.md)
-- World Agent Pass: [docs/world-integration.md](docs/world-integration.md) · [debrief](docs/world-debrief.md)
-
-## Where everything runs
-| Part | Host | Link |
+| Sponsor | Track | Where to look |
 |---|---|---|
-| Website (`studio-app/`, Vite + React, built in Arc Studio) | Vercel | https://verifypay-arc.vercel.app |
-| Backend (`studio-app/server`, Bun: World ID Agent Pass, EIP-712 approval signer, history scan) | Railway | https://backend-production-f785.up.railway.app/api/config |
-| Contracts, USDC, EURC | Arc Testnet (chain 5042002) | see "Deployed on Arc Testnet" below |
-| Chainlink CRE workflow (`cre/`) | Official CRE CLI simulator with `--broadcast`, started automatically by `cre/runner` (see [cre/README.md](cre/README.md)); DON deployment awaiting Chainlink access | evidence in [docs/chainlink-cre-feedback.md](docs/chainlink-cre-feedback.md#evidence) |
-| World ID | World (`auth.world.org`) | — |
-| DNS proof for the demo business | Vercel DNS (`_verifypay.pay.chrsnikhil.info`) | — |
+| Arc | Best Smart Contracts with Advanced Stablecoin Logic | `src/`, `test/`, the app in `studio-app/` (built in Arc Studio) |
+| Chainlink | Best workflow with CRE | `cre/`, [cre/README.md](cre/README.md), [docs/chainlink-cre-feedback.md](docs/chainlink-cre-feedback.md) |
+| World | World ID Agent Pass | `studio-app/server/`, [docs/world-integration.md](docs/world-integration.md) |
 
-The website forwards `/api/*` to the backend (`studio-app/vercel.json`). Secrets live only in Railway variables.
-Same-human World ID bindings are stored in a file on the backend, which resets when the backend redeploys
-(fine for a testnet demo; production would use a database).
+## Evidence on Arc Testnet
 
-## Run locally
-```
-forge test
-cd server && cp .env.example .env   # fill addresses, signer key, World client id
-npm i && npm test && npm start      # http://localhost:8787
-```
-
-## Deployed on Arc Testnet (chain 5042002)
-| Contract | Address | Deploy tx |
-|---|---|---|
-| PayeeRegistry | [0xc2035DA8766Fa4F68D405857A155dB52F15790cc](https://explorer.testnet.arc.io/address/0xc2035DA8766Fa4F68D405857A155dB52F15790cc) | [0x79b6…722d](https://explorer.testnet.arc.io/tx/0x79b6d292ce666895904afdce69c42837e3348ee6bc2c48d6b8e604094938722d) |
-| SafeSend | [0x88E2AFe1308CA7127D1c11926Dd4879c8b8e1924](https://explorer.testnet.arc.io/address/0x88E2AFe1308CA7127D1c11926Dd4879c8b8e1924) | [0x6666…1fa2](https://explorer.testnet.arc.io/tx/0x66663a183e699f7f822a82963bbb354ec0cf3965729400690289e8a61b6b1fa2) |
-| AgentWallet | [0xe905031D8C16d668282d917182D829CAc6C45358](https://explorer.testnet.arc.io/address/0xe905031D8C16d668282d917182D829CAc6C45358) | [0xf4ba…b240](https://explorer.testnet.arc.io/tx/0xf4bab76f652fd64551b37306021b6c3c916c4f42b187bd56e02789476c57b240) |
-
-Constructor args: forwarder `0x6E9EE680ef59ef64Aa8C7371279c27E496b5eDc1` (CRE simulation), expectedAuthor `0x0`, approvalSigner `0xDAFC6716eaBF0cEEe540a280b9974C60Ba2FC65e`, changeDelay 120 s, undoWindow 600 s, tokens USDC + EURC, AgentWallet owner `0x195de40f4f9F43ab52aDc83e04183dd215317876`, agent `0x51e48b2EF12e7008bA24cEe6A38a0e2ad64aA0a6`. Deployed and source-verified from Arc Studio.
-
-## Contracts (`src/`)
-| Contract | Key functions |
+| Event | Transaction |
 |---|---|
-| `PayeeRegistry` | `requestRegistration(domain)`, `onReport(metadata, report)` (CRE only), `requestPayoutChange` / `executePayoutChange` / `cancelPayoutChange`, `executeControllerChange` / `cancelControllerChange`, views `resolve`, `resolveName`, `inspectRecipient`, `fingerprint`, `domainCount`, `domainAt` |
-| `SafeSend` | `payByName(token, domainHash, amount, ref)`, `send(token, to, amount, ref)`, `cancel(id)`, `release(id)`; USDC + EURC |
-| `AgentWallet` | `agentPay(token, domainHash, amount, ref)` (agent, verified payees only, caps), `raiseLimits` (needs World ID approval), `lowerLimits`, `setPaused`, `withdraw` |
+| Chainlink CRE verified `pay.chrsnikhil.info` from live DNS (both resolvers agreed) | [0x4a12...0a3f](https://explorer.testnet.arc.io/tx/0x4a120ed62ec5cc0a1144ca464032e5b25ede941d93ba702e29f5c59880a40a3f) |
+| Payment to a look-alike of that business was escrowed, recording the imitated wallet | [0x96c1...a90d](https://explorer.testnet.arc.io/tx/0x96c19de51db4205da8129c1582f8c8ffa7c608c4e80e54b1629441b7e3e5a90d) |
+| The sender undid that payment and received the full amount | [0x404c...1c0d](https://explorer.testnet.arc.io/tx/0x404ce3057fe5e8eadbd49866c9afc33901c685257b1ddcfb6670e8a6dc3a1c0d) |
+| A first-time payment was released after its window | [0x69d9...c327](https://explorer.testnet.arc.io/tx/0x69d98f8a8882af2e574e3770527b901b316eb6f25016933129f496fc676cc327) |
+| A real zero-value poisoning transfer against our test payer, detected by the History shield | [0x7cd4...1f83](https://explorer.testnet.arc.io/tx/0x7cd4b77802fdcfa97ba29d82e9b6d7031aa9fc660835941baa7a7c627dca1f83) |
+| Instant payment by name to the verified business | [0x504f...64a8](https://explorer.testnet.arc.io/tx/0x504ffbf258c4c0cfd833c6b3260e773984d282f3e79d080a22ad53f7a14a64a8) |
 
-CRE report: `abi.encode(bytes32 domainHash, address controller, bytes32 leiHash, uint8 action)`, action 1 = verify, 2 = freeze.
+## Deployed contracts (Arc Testnet, chain 5042002)
 
-## Arc Testnet constants
-- Chain ID `5042002`, RPC `https://rpc.testnet.arc.io`, explorer `https://explorer.testnet.arc.io`, faucet `https://faucet.circle.com`
-- USDC ERC-20 interface `0x3600000000000000000000000000000000000000` (6 decimals; native gas balance uses 18, never mix with `msg.value`)
-- CRE chain name `arc-testnet`; MockKeystoneForwarder (simulation) `0x6E9EE680ef59ef64Aa8C7371279c27E496b5eDc1`; production KeystoneForwarder `0x76c9cf548b4179F8901cda1f8623568b58215E62`
+| Contract | Address |
+|---|---|
+| PayeeRegistry | [0xc2035DA8766Fa4F68D405857A155dB52F15790cc](https://explorer.testnet.arc.io/address/0xc2035DA8766Fa4F68D405857A155dB52F15790cc) |
+| SafeSend | [0x88E2AFe1308CA7127D1c11926Dd4879c8b8e1924](https://explorer.testnet.arc.io/address/0x88E2AFe1308CA7127D1c11926Dd4879c8b8e1924) |
+| AgentWallet | [0xe905031D8C16d668282d917182D829CAc6C45358](https://explorer.testnet.arc.io/address/0xe905031D8C16d668282d917182D829CAc6C45358) |
 
-## Test
+All three are source-verified. Deployment parameters: undo window 600 s, change delay 120 s (demo value), tokens USDC
+(`0x3600000000000000000000000000000000000000`) and EURC, CRE forwarder `0x6E9EE680ef59ef64Aa8C7371279c27E496b5eDc1`.
+
+## Repository
+
+| Path | Contents |
+|---|---|
+| `src/` | Solidity contracts: PayeeRegistry, SafeSend, AgentWallet |
+| `test/` | 45 Foundry tests: unit, fuzz, invariant, EIP-712 compatibility with the backend |
+| `cre/` | Chainlink CRE workflow (log trigger and cron trigger) and the runner that starts it automatically |
+| `studio-app/` | The web application and its backend, built in Arc Studio |
+| `server/` | Reference backend (World ID Agent Pass, approval signer, history scan) |
+| `agent/` | An AI agent that pays verified businesses through AgentWallet |
+| `specs/` | Product and technical specifications |
+| `docs/` | Security model and sponsor integration notes |
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Components, data flows, deployment and trust boundaries |
+| [specs/01-PRD.md](specs/01-PRD.md) | Product requirements |
+| [specs/02-TRD.md](specs/02-TRD.md) | Technical requirements |
+| [specs/06-implementation.md](specs/06-implementation.md) | Implementation plan and status |
+| [docs/security.md](docs/security.md) | Threat model, defenses and known gaps |
+| [AGENTS.md](AGENTS.md), [CLAUDE.md](CLAUDE.md) | Rules for AI coding agents working in this repository |
+| [AI_USAGE.md](AI_USAGE.md) | Record of what AI and the team each did, step by step |
+
+## Running it
+
+Hosted components:
+
+| Component | Host |
+|---|---|
+| Web application | Vercel: https://verifypay-arc.vercel.app |
+| Backend API | Railway: https://backend-production-f785.up.railway.app/api/config |
+| Contracts | Arc Testnet |
+| CRE workflow | Chainlink CRE CLI, started by `cre/runner` (see below) |
+
+Local development:
+
+```bash
+forge test                                  # contracts
+cd studio-app && bun install
+bun run server                              # backend on :8787 (needs studio-app/.env)
+bun run dev                                 # web application
 ```
-forge test   # 45 tests: unit, fuzz, invariant (escrow always fully backed), EIP-712 compatibility
+
+CRE workflow:
+
+```bash
+cd cre/runner && npm install
+node runner.mjs                             # watches registrations and runs the scheduled re-check
 ```
 
-## Deploy
-```
-APPROVAL_SIGNER=0x... forge script script/Deploy.s.sol --rpc-url https://rpc.testnet.arc.io --broadcast --private-key $PK
-```
+On Windows, `cre/runner/start.bat` opens the application and starts the runner in one step.
 
-## CRE workflow (`cre/`)
-Full guide: [cre/README.md](cre/README.md) · Feedback: [docs/chainlink-cre-feedback.md](docs/chainlink-cre-feedback.md)
+## Current status and limitations
 
-1. Business publishes TXT `_verifypay.<domain>` = `arc:<controller address>` (optional second TXT `lei:<20-char LEI>`).
-2. `cd cre && cre generate-bindings evm` (reads `contracts/evm/src/abi/PayeeRegistry.abi`).
-3. Put the registry address in `verifypay-workflow/config.staging.json`, fund `CRE_ETH_PRIVATE_KEY` in `.env` with Arc testnet USDC.
-4. Call `requestRegistration("acme.com")`, then:
-```
-cre workflow simulate verifypay-workflow --target staging-settings --broadcast \
-  --non-interactive --trigger-index 0 --evm-tx-hash <requestRegistration tx> --evm-event-index 0
-```
-Trigger 1 (cron) re-checks every payee: delete the TXT record and run it to freeze the payee live.
-
-## Security notes
-Full threat model, trust points and known gaps: [docs/security.md](docs/security.md).
-- `onReport` accepts only the Forwarder; set `expectedAuthor` (workflow owner) for production.
-- A DNS change to a new key never takes effect instantly: the payee freezes and the new key waits `changeDelay`; the current controller can cancel.
-- Payout changes need the controller plus an EIP-712 approval the backend signs only after a validated World Agent Pass, then `changeDelay`; the current payout wallet can cancel.
-- A wallet whose first-4/last-4 hex fingerprint collides with a registered payout can never be registered or rotated in.
-- Out of scope: an attacker controlling DNS **and** the owner's World ID **and** going unnoticed for the full delay.
+- The CRE workflow runs through the official CRE CLI (`cre workflow simulate --broadcast`), started automatically by
+  `cre/runner`. Deployment to a Chainlink DON requires deployment access, which has been requested. On testnet the
+  contracts accept reports from the CRE simulation forwarder; production uses the KeystoneForwarder with an expected
+  workflow owner. See [docs/security.md](docs/security.md).
+- The 120-second change delay is a demonstration value. Production would use 48 hours.
+- The look-alike check compares the first 4 and last 4 hex characters. Production would use wider fingerprints.
 
 ## License
+
 MIT

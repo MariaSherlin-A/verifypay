@@ -15,7 +15,7 @@
 
 ## World: World ID Agent Pass ($5,000)
 **Required:** official Agent Pass; full journey (request → user completion → validated result → protected action); a denied/expired/cancelled path where the action does not occur; validation in a secure backend (no client secrets, no trusting client responses); short debrief (time to first success, friction, missing capability/docs, top improvement).
-**What we use:** Agent Pass gates TWO meaningful actions: `requestPayoutChange` (the moment redirection fraud happens) and `AgentWallet.raiseLimits` (before an AI agent can spend more). Same-human binding: only the World ID that first approved for a payee/wallet can approve later changes. Backend validates the token and only then signs the EIP-712 approval. Proofs are mocked by World at this event (stated on the prize page).
+**What we use:** Agent Pass gates TWO meaningful actions: `requestPayoutChange` (the moment redirection fraud happens) and `AgentWallet.raiseLimits` (before an AI agent can spend more). Same-human binding: only the World ID that first approved for a payee/wallet can approve later changes. Backend validates the token and only then signs the EIP-712 approval. Approvals come from an Orb-verified human (the issuer advertises only Orb-level verification).
 **Proof:** video of Deny (nothing changes) and Approve (countdown starts); backend validator code; debrief in `docs/world-debrief.md`.
 **Docs:** https://auth.world.org/docs · portal https://auth.world.org/portal
 [ASSUMPTION] endpoint names and claims: confirm in the docs or at the World booth.

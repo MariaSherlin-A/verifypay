@@ -1,14 +1,14 @@
-# [App Name]
+# VerifyPay web application
 
-> Built with Arc Studio - money-powered apps in minutes
-
-This is the **project memory** - what Arc Studio remembers about building this app. It helps future agents (or humans) understand and extend the project.
-
----
+Built with Arc Studio. This file is the Arc Studio project memory: what an agent needs to understand and extend the
+application. Repository-wide rules are in [../AGENTS.md](../AGENTS.md).
 
 ## What This App Does
 
-[Brief description of what the app does and its primary use case]
+VerifyPay checks every recipient on Arc before money moves. Payments to verified businesses settle instantly; payments
+to look-alike or first-time addresses are held in a 10-minute undo escrow. It also shows poisoning attempts in the
+user's history, lists the user's payments, lets businesses manage their payout wallet with World ID, and gives an AI
+agent a wallet with human-approved limits.
 
 ## Tech Stack
 
@@ -87,7 +87,7 @@ Deployer (Circle smart account): 0xa3039A54856ed74B5AEc999EeF3fc954Ab010Cf6. All
 ## Undo window (`src/components/undo/`)
 
 - `UndoWindow.tsx` + `EscrowCard.tsx`; data in `src/lib/escrows.ts` (`loadEscrows`): `Escrowed` logs where sender = me from block 70933971 (SafeSend deployment block; the Arc RPC rejects ranges of about 20,000 blocks, so logs are read in 10,000-block chunks and incrementally after the first scan), merged with `vp:pending:<safeSend>` ids, then `SafeSend.pendings(id)`. Closed escrows show undone / released from the `Cancelled` / `Released` events.
-- `src/hooks/useChainTime.ts`: countdowns use the latest block timestamp (re-read every 3s), never the local date. Button state (Undo vs Release) follows the last block actually read.
+- `src/hooks/useChainTime.ts`: countdowns use the latest block timestamp (re-read every 12 s), never the local date. Button state (Undo vs Release) follows the last block actually read.
 - `write()` invalidates `['escrows']` and `['balances']` after every successful transaction.
 
 ## History shield (`src/components/history/`)

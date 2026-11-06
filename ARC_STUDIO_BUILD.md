@@ -21,12 +21,12 @@ RULES FOR THIS PROJECT (apply to every change):
 ### What is real, and where it comes from (verified Nov 6 2026)
 | Integration | Real source | Verified |
 |---|---|---|
-| Chain | Arc Testnet, chain id 5042002, RPC `https://rpc.testnet.arc.io` | `eth_chainId` = `0x4cef52` ✅ |
-| Stablecoins | USDC `0x3600…0000`, EURC `0x89B5…D72a` (6 decimals) | EURC bytecode on-chain ✅ |
-| Explorer API (History shield) | Blockscout v2 at `https://explorer.testnet.arc.io/api/v2` | `/api/v2/stats` → 200 ✅ |
-| Chainlink CRE | CRE CLI `simulate --broadcast` → Chainlink's simulation forwarder `0x6E9E…eDc1` → real `onReport` tx on Arc | forwarder bytecode on-chain ✅ |
+| Chain | Arc Testnet, chain id 5042002, RPC `https://rpc.testnet.arc.io` | `eth_chainId` = `0x4cef52` |
+| Stablecoins | USDC `0x3600…0000`, EURC `0x89B5…D72a` (6 decimals) | EURC bytecode on-chain |
+| Explorer API (History shield) | Blockscout v2 at `https://explorer.testnet.arc.io/api/v2` | `/api/v2/stats` → 200 |
+| Chainlink CRE | CRE CLI `simulate --broadcast` → Chainlink's simulation forwarder `0x6E9E…eDc1` → real `onReport` tx on Arc | forwarder bytecode on-chain |
 | DNS proof | Your real domain's TXT record, read via `dns.google` + `cloudflare-dns.com` | – |
-| World ID Agent Pass | `https://auth.world.org` OIDC: `device_authorization_endpoint`, RS256 ID tokens with `auth_time` | discovery document ✅ |
+| World ID Agent Pass | `https://auth.world.org` OIDC: `device_authorization_endpoint`, RS256 ID tokens with `auth_time` | discovery document |
 
 Notes for judges (say these honestly):
 - Chainlink's prize accepts "a successful simulation (CRE CLI) or deployment". `simulate --broadcast` runs the real workflow,
@@ -118,7 +118,7 @@ Task now: compile the contracts in src/ (PayeeRegistry, SafeSend, AgentWallet) w
 and run the Foundry tests in test/. If lib/forge-std is missing, run `forge install foundry-rs/forge-std@v1.17.0`.
 Show me the full test output. Do not change any file.
 ```
-✅ Expected: **45 tests pass** (unit, fuzz, 2 invariants, 2 EIP-712 compatibility).
+Expected: **45 tests pass** (unit, fuzz, 2 invariants, 2 EIP-712 compatibility).
 **Copy the Studio project URL into README.md** (line "Studio project URL"), commit.
 
 ### Step 2 · Deploy to Arc Testnet
@@ -145,7 +145,7 @@ After deploying: verify all three on the Arc explorer (https://explorer.testnet.
 PayeeRegistry.forwarder(), approvalSigner(), changeDelay(), SafeSend.undoWindow(), SafeSend.supportedToken(USDC) and
 SafeSend.supportedToken(EURC), AgentWallet.owner() and agent(). Give me the three addresses and explorer links.
 ```
-✅ Check every read-back value. Put the addresses in README.md ("Contracts" section) and in `server/.env` locally; commit.
+Expected result: Check every read-back value. Put the addresses in README.md ("Contracts" section) and in `server/.env` locally; commit.
 
 ### Step 3 · Backend (first prompt in **Build an app**, same project)
 ```
@@ -172,7 +172,7 @@ The same-human binding (first World ID `sub` that approves a payee/wallet owns i
 Tell me where in Studio I set server-side secrets.
 ```
 Then set the env vars in Studio's secrets/environment UI (**never paste keys into the chat**).
-✅ `GET /api/config` returns your real addresses and `approvalSigner` equals the address you deployed with.
+Expected result: `GET /api/config` returns your real addresses and `approvalSigner` equals the address you deployed with.
 If Studio cannot store server secrets, ask it how; as a last resort run `server/` locally (`npm start`) and point the app at it.
 
 ### Step 4 · World ID Agent Pass app registration (5 min, do this while Studio builds)
@@ -314,12 +314,12 @@ If `typecheck` reports `Cannot find name 'Buffer'`, replace both `Buffer.from(re
 cre workflow simulate verifypay-workflow --target staging-settings --broadcast \
   --non-interactive --trigger-index 0 --evm-tx-hash <requestRegistration tx hash> --evm-event-index 0
 ```
-✅ Log shows both resolvers returning your `arc:` address and `action=1 … tx=0x…`; Business screen shows **Active**.
+Expected result: Log shows both resolvers returning your `arc:` address and `action=1 … tx=0x…`; Business screen shows **Active**.
 **FREEZE.** Delete the TXT record, wait until `nslookup` at 8.8.8.8 and 1.1.1.1 no longer shows it, then:
 ```
 cre workflow simulate verifypay-workflow --target staging-settings --broadcast --non-interactive --trigger-index 1
 ```
-✅ `action=2` tx; Business shows **Frozen**; Pay "<domain>" is blocked; the agent is refused.
+Expected result: `action=2` tx; Business shows **Frozen**; Pay "<domain>" is blocked; the agent is refused.
 **Re-verify:** restore the TXT record, run trigger 1 again → Active.
 Save both explorer links + terminal output in `docs/chainlink-cre-feedback.md` (Evidence) and fill the rest of it.
 

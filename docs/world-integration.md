@@ -1,7 +1,8 @@
 # World ID Agent Pass: integration guide
 
 Track: **World ID Agent Pass ($5,000)**. Agent Pass is the official World ID flow at `auth.world.org`.
-At this event World mocks the identity proofs (fake identities, no sandbox app needed), which the prize page allows.
+The issuer's discovery document advertises only Orb-level verification (`acr_values_supported`: orb, orb-face), so an
+approval comes from an Orb-verified human using World App.
 
 ## Prize requirements and how VerifyPay meets them
 | World requirement | VerifyPay |
