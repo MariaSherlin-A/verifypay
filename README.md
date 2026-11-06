@@ -1,5 +1,9 @@
 # VerifyPay: address-poisoning interceptor and self-freezing USDC settlement on Arc
 
+Address poisoning has stolen **$83.8M** across **270M attempts**, and a single copy-paste cost **$50M** in December 2025.
+The scammer creates an address that starts and ends like your supplier's, plants it in your history with a zero-value
+transfer, and waits for you to copy it. VerifyPay adds the undo button that stablecoin payments are missing.
+
 Payments to verified businesses settle instantly. Payments to look-alike (poisoned) or first-time
 addresses go into a 10-minute undo escrow. A Chainlink CRE workflow verifies each business's domain
 and re-checks it daily, freezing the payee the moment its DNS proof disappears.
@@ -14,11 +18,27 @@ Specs: `/specs` · Prompts: `/prompts` · AI disclosure: `AI_USAGE.md`
 | `src/`, `test/` | Contracts + 45 Foundry tests (unit, fuzz, invariant, EIP-712 compatibility with the backend) |
 | `cre/` | Chainlink CRE workflow: verify on registration, daily re-check, auto-freeze |
 | `server/` | Backend: World ID Agent Pass + validation, approval signer, poisoning history scan (13 tests) |
-| `web/` | Web app (no build step): Pay, Undo window, History shield, Business, Agent wallet |
+| `studio-app/` | **The app built in Arc Studio** (Vite + React + viem, backend in `studio-app/server`): Pay, Undo window, History shield, Business, Agent wallet, How it works, Builders |
+| `web/` | Reference web app (no build step) that the Studio app was built to match |
 | `agent/` | An AI agent paying a verified business by domain |
 | `specs/`, `prompts/` | Spec suite and prompts (ETHGlobal spec-driven rule) |
 
-**Building in Arc Studio:** follow [ARC_STUDIO_BUILD.md](ARC_STUDIO_BUILD.md). Studio project URL: _add after step 1_
+**Built in Arc Studio:** project https://studio.arc.io/app/d07d3246-b875-45b4-9cf4-4f5bfde5aeed. Each screen is a
+separate `studio-app:` commit. The step-by-step guide is in [ARC_STUDIO_BUILD.md](ARC_STUDIO_BUILD.md).
+
+## Live evidence (Arc Testnet)
+| What happened | Proof |
+|---|---|
+| Pasted a look-alike of the verified `pay.chrsnikhil.info` wallet: the payment was escrowed, recording reason 1 and the imitated wallet | [tx 0x96c1…a90d](https://explorer.testnet.arc.io/tx/0x96c19de51db4205da8129c1582f8c8ffa7c608c4e80e54b1629441b7e3e5a90d) |
+| Undo returned the USDC | [tx 0x404c…1c0d](https://explorer.testnet.arc.io/tx/0x404ce3057fe5e8eadbd49866c9afc33901c685257b1ddcfb6670e8a6dc3a1c0d) |
+| First-time escrow released after the window | [tx 0x69d9…c327](https://explorer.testnet.arc.io/tx/0x69d98f8a8882af2e574e3770527b901b316eb6f25016933129f496fc676cc327) |
+| Chainlink CRE verified `pay.chrsnikhil.info` from real DNS (Google + Cloudflare agreed) | [tx 0x4a12…0a3f](https://explorer.testnet.arc.io/tx/0x4a120ed62ec5cc0a1144ca464032e5b25ede941d93ba702e29f5c59880a40a3f) · [log](docs/chainlink-cre-feedback.md#evidence) |
+| AI agent refused without a human-approved limit / for an unverified domain | `OverPerPayment(1000000, 0)` / `PayeeNotActive(0)` (`agent/agent-pay.mjs`) |
+| World ID Agent Pass device flow against auth.world.org (user code issued, poll pending) | backend `/api/agent-pass/start` + `/poll` |
+
+Honest status: CRE ran via `cre workflow simulate --broadcast` through the simulation forwarder, not yet on a live DON
+(see [docs/security.md](docs/security.md#testnet-caveat-the-simulation-forwarder-found-and-documented-by-us)).
+A World ID approval end to end needs an Orb-verified human.
 
 ## Sponsor docs
 - Qualification checklist: [SPONSOR_QUALIFICATION.md](SPONSOR_QUALIFICATION.md)
@@ -80,6 +100,7 @@ cre workflow simulate verifypay-workflow --target staging-settings --broadcast \
 Trigger 1 (cron) re-checks every payee: delete the TXT record and run it to freeze the payee live.
 
 ## Security notes
+Full threat model, trust points and known gaps: [docs/security.md](docs/security.md).
 - `onReport` accepts only the Forwarder; set `expectedAuthor` (workflow owner) for production.
 - A DNS change to a new key never takes effect instantly: the payee freezes and the new key waits `changeDelay`; the current controller can cancel.
 - Payout changes need the controller plus an EIP-712 approval the backend signs only after a validated World Agent Pass, then `changeDelay`; the current payout wallet can cancel.
