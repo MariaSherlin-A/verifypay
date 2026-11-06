@@ -40,6 +40,33 @@ export function scanHistory(user, transfers, opts = {}) {
   return { realCounterparties: [...real.keys()], attempts }
 }
 
+/**
+ * Map raw ERC-20 `Transfer` logs (viem getLogs with the Transfer event) to the shape above.
+ * Needed because the Arc explorer's token-transfer list omits zero-value transfers, which is exactly
+ * how a `transferFrom(victim, lookalike, 0)` poisoning shows up (verified on Arc Testnet, 2026-11-06).
+ */
+export const fromTransferLogs = (logs) =>
+  (logs || []).map((l) => ({
+    from: l.args?.from,
+    to: l.args?.to,
+    value: String(l.args?.value ?? 0n),
+    token: l.address,
+    txHash: l.transactionHash,
+  }))
+
+/** Union of transfer lists, without duplicates (same tx, token, from, to and value). */
+export function mergeTransfers(...lists) {
+  const seen = new Set()
+  const out = []
+  for (const t of lists.flat()) {
+    const key = [t.txHash, t.token, t.from, t.to, t.value].map((x) => norm(x ?? '')).join('|')
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(t)
+  }
+  return out
+}
+
 /** Map Blockscout v2 /addresses/{a}/token-transfers items to the shape above. */
 export const fromBlockscout = (items) =>
   (items || []).map((i) => ({

@@ -8,7 +8,8 @@ import { randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { createPublicClient, http, getAddress, isAddress, isHex, parseAbi } from 'viem'
 import { discover, fetchJwks, validateIdToken, startDeviceFlow, pollDeviceToken } from './oidc.js'
-import { scanHistory, fromBlockscout } from './poisoning.js'
+import { scanHistory, fromBlockscout, fromTransferLogs, mergeTransfers } from './poisoning.js'
+import { fetchTransferLogs } from './transferLogs.js'
 import { makeSigner } from './approval.js'
 import { createBindings } from './bindings.js'
 import { getUsdc, requireChain } from '../../src/onchain-facts.ts'
@@ -213,8 +214,18 @@ async function historyScan(address) {
   const json = await res.json()
   // An explorer reply without `items` is an error, not "no transfers": never report a clean history from it.
   if (!Array.isArray(json.items)) throw new Error('explorer returned an unexpected response (no items list)')
+  // The explorer list omits zero-value transfers, which is how a transferFrom(victim, lookalike, 0) poisoning appears,
+  // so raw Transfer logs to and from this address are read from the chain as well and merged in.
+  const lookbackBlocks = BigInt(env.HISTORY_LOOKBACK_BLOCKS || 200000)
+  const { logs, fromBlock, toBlock } = await fetchTransferLogs(client, { account: address, tokens: [USDC, EURC], lookbackBlocks })
+  const transfers = mergeTransfers(fromBlockscout(json.items), fromTransferLogs(logs))
   // Detection logic is unchanged. Only the first page of explorer results is read, so say how much was scanned.
-  return { ...scanHistory(address, fromBlockscout(json.items)), scanned: json.items.length, hasMore: Boolean(json.next_page_params) }
+  return {
+    ...scanHistory(address, transfers),
+    scanned: json.items.length,
+    hasMore: Boolean(json.next_page_params),
+    logWindow: { fromBlock: String(fromBlock), toBlock: String(toBlock) },
+  }
 }
 
 // ---- HTTP ---------------------------------------------------------------------------------

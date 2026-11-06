@@ -14,7 +14,8 @@ const SMALL_CHUNK = 2_000n;
 const MIN_GAP_MS = 450;
 let queue: Promise<unknown> = Promise.resolve();
 export function paced<T>(fn: () => Promise<T>): Promise<T> {
-  const run = queue.then(fn);
+  // Every queued read also retries "rate limit exceeded" (see withRateLimitRetry), so a throttled burst never shows as an error.
+  const run = queue.then(() => withRateLimitRetry(fn));
   const gap = () => new Promise<void>((r) => setTimeout(r, MIN_GAP_MS));
   queue = run.then(gap, gap);
   return run;
@@ -76,6 +77,20 @@ function apply(feed: SafeSendFeed, eventName: string | undefined, args: unknown)
 }
 
 const isRateLimit = (e: unknown): boolean => e instanceof Error && /rate limit|exceeds defined limit/i.test(e.message);
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/** Retries only "rate limit exceeded", with growing pauses (1 s, 2 s, 4 s, 8 s). Any other error is real and is thrown. */
+async function withRateLimitRetry<T>(fn: () => Promise<T>, tries = 5): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (!isRateLimit(e) || i >= tries - 1) throw e;
+      await sleep(1000 * 2 ** i);
+    }
+  }
+}
 
 async function readRange(client: PublicClient, safeSend: Address, from: bigint, to: bigint, feed: SafeSendFeed): Promise<void> {
   const logs = await paced(() => client.getLogs({ address: safeSend, events: FEED_EVENTS, fromBlock: from, toBlock: to }));

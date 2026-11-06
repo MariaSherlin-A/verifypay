@@ -7,7 +7,8 @@ import { extname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createPublicClient, http, isAddress, isHex, parseAbi } from 'viem'
 import { discover, fetchJwks, validateIdToken, startDeviceFlow, pollDeviceToken } from './oidc.js'
-import { scanHistory, fromBlockscout } from './poisoning.js'
+import { scanHistory, fromBlockscout, fromTransferLogs, mergeTransfers } from './poisoning.js'
+import { fetchTransferLogs } from './transferLogs.js'
 import { makeSigner } from './approval.js'
 
 const env = process.env
@@ -115,7 +116,13 @@ async function historyScan(address) {
   const res = await fetch(`${base}/api/v2/addresses/${address}/token-transfers?type=ERC-20`)
   if (!res.ok) throw new Error(`explorer HTTP ${res.status}`)
   const json = await res.json()
-  return scanHistory(address, fromBlockscout(json.items))
+  if (!Array.isArray(json.items)) throw new Error('explorer returned an unexpected response (no items list)')
+  // Raw Transfer logs as well: the explorer list omits zero-value transfers (the poisoning itself).
+  const tokens = [env.USDC_ADDRESS || '0x3600000000000000000000000000000000000000', env.EURC_ADDRESS || '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a']
+  const lookbackBlocks = BigInt(env.HISTORY_LOOKBACK_BLOCKS || 200000)
+  const { logs, fromBlock, toBlock } = await fetchTransferLogs(client, { account: address, tokens, lookbackBlocks })
+  const transfers = mergeTransfers(fromBlockscout(json.items), fromTransferLogs(logs))
+  return { ...scanHistory(address, transfers), logWindow: { fromBlock: String(fromBlock), toBlock: String(toBlock) } }
 }
 
 // ---- HTTP ---------------------------------------------------------------------------------
