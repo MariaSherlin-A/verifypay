@@ -2,7 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { fetchAppConfig } from '@/lib/appConfig';
 import { Header } from '@/components/Header';
+import { BusinessScreen } from '@/components/business/BusinessScreen';
 import { HistoryShield } from '@/components/history/HistoryShield';
+import { TopNav } from '@/components/nav/TopNav';
+import { useTab } from '@/hooks/useTab';
 import { PayScreen } from '@/components/pay/PayScreen';
 import { TxStatus } from '@/components/TxStatus';
 import { UndoWindow } from '@/components/undo/UndoWindow';
@@ -45,11 +48,18 @@ function Contracts() {
 }
 
 function Main() {
+  const [tab, setTab] = useTab();
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8">
-      <PayScreen />
-      <UndoWindow />
-      <HistoryShield />
+      <TopNav tab={tab} onChange={setTab} />
+      {tab === 'pay' && (
+        <>
+          <PayScreen />
+          <UndoWindow />
+          <HistoryShield />
+        </>
+      )}
+      {tab === 'business' && <BusinessScreen />}
       <div className="sticky bottom-4 z-30 empty:hidden">
         <TxStatus />
       </div>

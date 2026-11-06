@@ -32,6 +32,8 @@ The Undo window below it lists your held payments straight from the chain, with 
 
 The History shield scans your recent token transfers for address-poisoning attempts: look-alike addresses that sent you a tiny or zero-value transfer to trick you into copying them. It reads the latest page of transfers from the Arc explorer and says how many it scanned.
 
+The Business tab lets a company register its domain (one DNS record, verified by Chainlink CRE), watch its status, cancel a suspicious change of controller, and change its payout wallet after a World ID check followed by a public delay.
+
 The backend provides the World ID approval step, the address-poisoning history scan, and the app configuration at `/api/config`.
 
 ### Environment variables

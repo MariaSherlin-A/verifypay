@@ -94,3 +94,9 @@ Deployer (Circle smart account): 0xa3039A54856ed74B5AEc999EeF3fc954Ab010Cf6. All
 
 - `HistoryShield.tsx` calls `GET /api/history-scan?address=` (`src/lib/historyScan.ts`). The backend reads only the FIRST page of Blockscout token transfers (`type=ERC-20`, up to 50 items); the route returns `scanned` (items read) and `hasMore` (explorer `next_page_params`) next to the unchanged detection result, and the UI states how much was scanned.
 - `src/components/AddressDiff.tsx` is the shared character-diff view (Pay look-alike banner and History shield).
+
+## Business tab (`src/components/business/`, `src/components/nav/`)
+
+- Navigation is `?tab=` in the URL (`src/hooks/useTab.ts`); Pay = Pay + Undo window + History shield, Business = `BusinessScreen`, Agent is disabled until Step 6.5.
+- Payout change: `useAgentPass.ts` drives `POST /api/agent-pass/start` / `poll` (sequential polling every `interval` s; the backend reports World's `slow_down` as `pending`). Only an `approved` result leads to `requestPayoutChange(domainHash, newPayout, deadline, signature)` with the backend's exact values.
+- QR codes use the `qrcode` package (v1.5.x). It is installed because ConnectKit depends on it, but it is NOT declared in `package.json`; `src/types/qrcode.d.ts` provides its types. Declare it (`bun add qrcode`) when approved.

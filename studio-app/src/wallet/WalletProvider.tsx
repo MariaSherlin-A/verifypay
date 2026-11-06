@@ -213,6 +213,7 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         setTx({ phase: 'success', label, hash });
         void queryClient.invalidateQueries({ queryKey: ['balances'] });
         void queryClient.invalidateQueries({ queryKey: ['escrows'] }); // held payments: re-read pendings(id)
+        void queryClient.invalidateQueries({ queryKey: ['payee'] }); // business status, queued changes
         return { hash, receipt };
       } catch (e) {
         const failure = decodeTxError(e);
