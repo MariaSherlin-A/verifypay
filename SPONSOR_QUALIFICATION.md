@@ -45,7 +45,7 @@ How VerifyPay meets each sponsor's requirements for ETHGlobal Mumbai. Submission
 | Specifications and prompts in the repository | `specs/`, `prompts/`, [AGENTS.md](AGENTS.md), [CLAUDE.md](CLAUDE.md) | Done |
 | AI usage disclosed | [AI_USAGE.md](AI_USAGE.md) | Done |
 | Public repository with a license | MIT [LICENSE](LICENSE) | Done |
-| Demonstration video | Three minutes or less | Pending |
+| Demonstration video | Under four minutes; script in [specs/08-demo-submission.md](specs/08-demo-submission.md) | Pending |
 
 ## Real integrations in the main flow
 

@@ -63,7 +63,7 @@
 | T20 | Resilience against public RPC rate limits and wallet duplicate submissions | Reads use partner RPCs with fallback; duplicates resolved to the landed transaction | Done |
 | T21 | Security review and threat model | [docs/security.md](../docs/security.md) with live evidence and declared gaps | Done |
 | T22 | Documentation: README, architecture, PRD, TRD, this plan, agent rules | Documents current and consistent | Done |
-| T23 | Demonstration video (3 minutes or less) and submission | Submitted before the deadline | Pending |
+| T23 | Demonstration video (under 4 minutes; script in ../specs/08-demo-submission.md) and submission | Submitted before the deadline | Pending |
 
 ## Remaining work, in order
 
