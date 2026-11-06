@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { createPublicClient, createWalletClient, custom, fallback, getAddress, http, type Address, type EIP1193Provider, type Hex } from 'viem';
+import { createPublicClient, createWalletClient, custom, encodeFunctionData, fallback, getAddress, http, type Address, type EIP1193Provider, type Hex } from 'viem';
 import { arcChainFromConfig, type AppConfig } from '@/lib/appConfig';
 import { decodeTxError } from '@/lib/txErrors';
 import { WalletContext, type TxState, type WalletContextValue, type WriteParams } from './walletContext';
@@ -45,6 +45,48 @@ const readSelectedAccount = async (provider: EIP1193Provider): Promise<Address |
 };
 
 /** The wallet's own throttling error (MetaMask: "Request is being rate limited", code -32005 / HTTP 429 upstream). */
+const isAlreadyKnown = (e: unknown): boolean => {
+  for (let x: unknown = e, depth = 0; x && depth < 8; x = (x as { cause?: unknown }).cause, depth++) {
+    const o = x as { message?: unknown; details?: unknown; shortMessage?: unknown };
+    if (/already known/i.test(`${String(o.message ?? '')} ${String(o.details ?? '')} ${String(o.shortMessage ?? '')}`)) return true;
+  }
+  return false;
+};
+
+/**
+ * Finds the transaction this wallet really sent: same sender, nonce ≥ the nonce before sending, same contract and exactly
+ * the same call data (payments carry a unique ref, so the data identifies one payment). Read from the Arc explorer API,
+ * polled every 2 s for up to 90 s. Returns null if it never appears (then the original error is shown).
+ */
+async function findSentTransaction(explorer: string, from: Address, nonceBefore: number, to: Address, data: Hex): Promise<Hex | null> {
+  const url = `${explorer.replace(/\/$/, '')}/api/v2/addresses/${from}/transactions`;
+  for (const deadline = Date.now() + 90_000; Date.now() < deadline; ) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const body: unknown = await res.json();
+        const items = (body as { items?: unknown[] }).items ?? [];
+        for (const it of items) {
+          const t = it as { hash?: string; nonce?: number; to?: { hash?: string } | null; raw_input?: string };
+          if (
+            typeof t.hash === 'string' &&
+            typeof t.nonce === 'number' &&
+            t.nonce >= nonceBefore &&
+            t.to?.hash?.toLowerCase() === to.toLowerCase() &&
+            t.raw_input?.toLowerCase() === data.toLowerCase()
+          ) {
+            return t.hash as Hex;
+          }
+        }
+      }
+    } catch {
+      // explorer briefly unreachable: keep polling until the deadline
+    }
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  return null;
+}
+
 /** Arc Testnet partner RPCs from Arc's docs (verified: both return chain 5042002 and our registry's state). */
 const ARC_TESTNET_BLOCKDAEMON_RPC = 'https://rpc.blockdaemon.testnet.arc.io';
 const ARC_TESTNET_DRPC_RPC = 'https://rpc.drpc.testnet.arc.io';
@@ -287,7 +329,18 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         }
         // The wallet is asked exactly once. Never re-prompt automatically: if the wallet's RPC failed after you confirmed,
         // the transaction may still land, and a second prompt could pay twice.
-        hash = await wc.writeContract({ ...params, account, chain });
+        const nonceBefore = await publicClient.getTransactionCount({ address: account, blockTag: 'latest' });
+        try {
+          hash = await wc.writeContract({ ...params, account, chain });
+        } catch (e) {
+          // MetaMask sometimes submits the signed transaction twice; the second copy is answered "already known" and
+          // MetaMask reports a failure although the first copy is on its way. Find the real transaction instead.
+          if (!isAlreadyKnown(e)) throw e;
+          setTx({ phase: 'confirming', label: `${label} (your wallet reported a duplicate; finding the transaction…)` });
+          const found = await findSentTransaction(config.explorer, account, nonceBefore, params.address, encodeFunctionData(params));
+          if (!found) throw e;
+          hash = found;
+        }
         setTx({ phase: 'confirming', label, hash });
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         if (receipt.status !== 'success') throw new Error(`Transaction reverted on chain: ${hash}`);
@@ -305,7 +358,7 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         throw e;
       }
     },
-    [account, walletClient, chain, refreshChainId, publicClient, queryClient],
+    [account, walletClient, chain, refreshChainId, publicClient, queryClient, config.explorer],
   );
 
   const clearTx = useCallback(() => setTx(null), []);
