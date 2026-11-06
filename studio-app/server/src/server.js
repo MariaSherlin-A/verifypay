@@ -213,7 +213,8 @@ async function historyScan(address) {
   const json = await res.json()
   // An explorer reply without `items` is an error, not "no transfers": never report a clean history from it.
   if (!Array.isArray(json.items)) throw new Error('explorer returned an unexpected response (no items list)')
-  return scanHistory(address, fromBlockscout(json.items))
+  // Detection logic is unchanged. Only the first page of explorer results is read, so say how much was scanned.
+  return { ...scanHistory(address, fromBlockscout(json.items)), scanned: json.items.length, hasMore: Boolean(json.next_page_params) }
 }
 
 // ---- HTTP ---------------------------------------------------------------------------------

@@ -89,3 +89,8 @@ Deployer (Circle smart account): 0xa3039A54856ed74B5AEc999EeF3fc954Ab010Cf6. All
 - `UndoWindow.tsx` + `EscrowCard.tsx`; data in `src/lib/escrows.ts` (`loadEscrows`): `Escrowed` logs where sender = me from block 70933971 (SafeSend deployment block; the Arc RPC rejects ranges of about 20,000 blocks, so logs are read in 10,000-block chunks and incrementally after the first scan), merged with `vp:pending:<safeSend>` ids, then `SafeSend.pendings(id)`. Closed escrows show undone / released from the `Cancelled` / `Released` events.
 - `src/hooks/useChainTime.ts`: countdowns use the latest block timestamp (re-read every 3s), never the local date. Button state (Undo vs Release) follows the last block actually read.
 - `write()` invalidates `['escrows']` and `['balances']` after every successful transaction.
+
+## History shield (`src/components/history/`)
+
+- `HistoryShield.tsx` calls `GET /api/history-scan?address=` (`src/lib/historyScan.ts`). The backend reads only the FIRST page of Blockscout token transfers (`type=ERC-20`, up to 50 items); the route returns `scanned` (items read) and `hasMore` (explorer `next_page_params`) next to the unchanged detection result, and the UI states how much was scanned.
+- `src/components/AddressDiff.tsx` is the shared character-diff view (Pay look-alike banner and History shield).

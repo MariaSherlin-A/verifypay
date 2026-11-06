@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { fetchAppConfig } from '@/lib/appConfig';
 import { Header } from '@/components/Header';
+import { HistoryShield } from '@/components/history/HistoryShield';
 import { PayScreen } from '@/components/pay/PayScreen';
 import { TxStatus } from '@/components/TxStatus';
 import { UndoWindow } from '@/components/undo/UndoWindow';
@@ -48,6 +49,7 @@ function Main() {
     <main className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8">
       <PayScreen />
       <UndoWindow />
+      <HistoryShield />
       <div className="sticky bottom-4 z-30 empty:hidden">
         <TxStatus />
       </div>

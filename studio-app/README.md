@@ -30,6 +30,8 @@ The Pay screen takes a business domain or a wallet address and shows a live verd
 
 The Undo window below it lists your held payments straight from the chain, with a countdown based on chain time. Before the window closes you can undo a payment and get your money back; after it closes anyone can release it to the recipient.
 
+The History shield scans your recent token transfers for address-poisoning attempts: look-alike addresses that sent you a tiny or zero-value transfer to trick you into copying them. It reads the latest page of transfers from the Arc explorer and says how many it scanned.
+
 The backend provides the World ID approval step, the address-poisoning history scan, and the app configuration at `/api/config`.
 
 ### Environment variables

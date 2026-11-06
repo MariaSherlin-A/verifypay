@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, Info, Loader2, Lock, ShieldAlert, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { diffSegments, shortAddr, STATUS, VERDICT, type Recipient } from '@/lib/recipient';
+import { AddressDiff } from '@/components/AddressDiff';
+import { shortAddr, STATUS, VERDICT, type Recipient } from '@/lib/recipient';
 
 type Tone = 'ok' | 'frozen' | 'warn' | 'bad' | 'info';
 
@@ -17,32 +18,6 @@ function Chip({ tone, icon, children }: { tone: Tone; icon: ReactNode; children:
     <div className={`flex items-start gap-2.5 rounded-2xl border px-4 py-3 text-sm font-medium ${TONES[tone]}`}>
       <span className="mt-0.5 shrink-0">{icon}</span>
       <div className="min-w-0">{children}</div>
-    </div>
-  );
-}
-
-/** Pasted address with every character that differs from the real payee marked, and the real payee underneath. */
-function AddressDiff({ pasted, imitated }: { pasted: string; imitated: string }) {
-  return (
-    <div className="mono mt-3 space-y-1.5 break-all text-[13px] font-normal leading-relaxed">
-      <p>
-        <span className="font-sans text-xs font-semibold uppercase tracking-[0.08em] opacity-80">You pasted </span>
-        <br />
-        {diffSegments(pasted, imitated).map((s, i) =>
-          s.differs ? (
-            <mark key={i} className="rounded bg-[#ba2b4c] px-[1px] font-semibold text-white">
-              {s.ch}
-            </mark>
-          ) : (
-            <span key={i}>{s.ch}</span>
-          ),
-        )}
-      </p>
-      <p>
-        <span className="font-sans text-xs font-semibold uppercase tracking-[0.08em] opacity-80">Real payee </span>
-        <br />
-        {imitated}
-      </p>
     </div>
   );
 }
@@ -125,7 +100,7 @@ export function VerdictChip({ state }: { state: VerdictState }) {
           </p>
           <p className="mt-1 pl-[34px] text-sm">If you send anyway, the payment waits 10 minutes with Undo.</p>
           <div className="pl-[34px]">
-            <AddressDiff pasted={recipient.target} imitated={recipient.imitated} />
+            <AddressDiff pasted={recipient.target} real={recipient.imitated} />
           </div>
         </div>
       );
