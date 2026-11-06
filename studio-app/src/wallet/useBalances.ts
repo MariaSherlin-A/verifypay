@@ -16,7 +16,7 @@ export interface Balances {
 }
 
 /** EURC is a 6-decimal ERC-20 on Arc; the contract is asked, and anything else is an error rather than a guess. */
-const EURC_EXPECTED_DECIMALS = 6;
+export const EURC_EXPECTED_DECIMALS = 6;
 
 /** Live USDC and EURC balances of the connected wallet, read with ERC20.balanceOf and refreshed on a timer and after every transaction. */
 export function useBalances() {

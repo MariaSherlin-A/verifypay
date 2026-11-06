@@ -70,3 +70,8 @@ Deployer (Circle smart account): 0xa3039A54856ed74B5AEc999EeF3fc954Ab010Cf6. All
 - All addresses come from `GET /api/config` (`src/lib/appConfig.ts`). Never hard-code them in `src/`.
 - Custom errors are decoded from the contract ABIs in `src/abis/*.json` (`src/lib/txErrors.ts`). After any contract change: `forge build` then `bun run abis:sync`.
 - Balances: `useBalances()` (ERC20 `balanceOf`, 6 decimals, refreshed every 8s and after each transaction).
+
+## Pay screen (`src/components/pay/`)
+
+- `PayScreen.tsx` (UI), `usePay.ts` (allowance -> approve exact amount -> `payByName` / `send`, decodes `Escrowed`), `VerdictChip.tsx` (live verdict + look-alike diff). Lookup logic is `src/lib/recipient.ts` (`resolve`, `inspectRecipient`, `getPayee`); input is only trimmed, never lowercased (same as web/app.js).
+- Held payments: escrow ids are saved to localStorage key `vp:pending:<safeSend>` for the Undo window screen (also readable from `Escrowed` logs).

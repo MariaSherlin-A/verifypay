@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { fetchAppConfig } from '@/lib/appConfig';
 import { Header } from '@/components/Header';
+import { PayScreen } from '@/components/pay/PayScreen';
 import { TxStatus } from '@/components/TxStatus';
 import { WalletProvider } from '@/wallet/WalletProvider';
 import { useWallet } from '@/wallet/walletContext';
@@ -42,17 +43,9 @@ function Contracts() {
 }
 
 function Main() {
-  const { account } = useWallet();
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8">
-      {!account && (
-        <section className="glass rounded-3xl p-6 sm:p-8">
-          <h1 className="display text-3xl font-semibold text-balance">Pay the business, not the address</h1>
-          <p className="mt-2 max-w-prose text-pretty text-[var(--muted)]">
-            Connect a browser wallet to continue. VerifyPay will switch it to Arc Testnet and show your live USDC and EURC balances.
-          </p>
-        </section>
-      )}
+      <PayScreen />
       <TxStatus />
       <Contracts />
     </main>

@@ -26,6 +26,8 @@ forge test           # 45 contract tests
 
 The web app connects an injected browser wallet (MetaMask, Rabby), switches it to Arc Testnet, and shows live USDC and EURC balances. Contract addresses are loaded from the backend, never hard-coded in the frontend.
 
+The Pay screen takes a business domain or a wallet address and shows a live verdict from the chain: verified (instant), frozen (blocked), a look-alike of a registered business (held 10 minutes with undo), or a first-time address (held 10 minutes with undo).
+
 The backend provides the World ID approval step, the address-poisoning history scan, and the app configuration at `/api/config`.
 
 ### Environment variables
