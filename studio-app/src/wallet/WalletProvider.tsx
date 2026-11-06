@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { createPublicClient, createWalletClient, custom, getAddress, http, type Address, type EIP1193Provider, type Hex } from 'viem';
+import { createPublicClient, createWalletClient, custom, fallback, getAddress, http, type Address, type EIP1193Provider, type Hex } from 'viem';
 import { arcChainFromConfig, type AppConfig } from '@/lib/appConfig';
 import { decodeTxError } from '@/lib/txErrors';
 import { WalletContext, type TxState, type WalletContextValue, type WriteParams } from './walletContext';
@@ -45,6 +45,10 @@ const readSelectedAccount = async (provider: EIP1193Provider): Promise<Address |
 };
 
 /** The wallet's own throttling error (MetaMask: "Request is being rate limited", code -32005 / HTTP 429 upstream). */
+/** Arc Testnet partner RPCs from Arc's docs (verified: both return chain 5042002 and our registry's state). */
+const ARC_TESTNET_BLOCKDAEMON_RPC = 'https://rpc.blockdaemon.testnet.arc.io';
+const ARC_TESTNET_DRPC_RPC = 'https://rpc.drpc.testnet.arc.io';
+
 // viem wraps -32005 as LimitExceededRpcError ("Request exceeds defined limit."), so check codes along the cause chain too.
 const isWalletRateLimit = (e: unknown): boolean => {
   for (let x: unknown = e, depth = 0; x && depth < 8; x = (x as { cause?: unknown }).cause, depth++) {
@@ -64,8 +68,18 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
   const queryClient = useQueryClient();
   const chain = useMemo(() => arcChainFromConfig(config), [config]);
   const publicClient = useMemo(
-    // The public Arc RPC throttles bursts (HTTP 429 / -32005). viem retries exactly those with a growing delay.
-    () => createPublicClient({ chain, transport: http(config.rpcUrl, { retryCount: 6, retryDelay: 1000 }) }),
+    // The public Arc RPC throttles bursts (HTTP 429 / -32005) per IP, and the wallet shares that limit. Reads therefore go
+    // first to Blockdaemon's Arc Testnet RPC (listed in Arc's docs, docs.arc.network → Connect to Arc), then fall back to
+    // the public Arc RPC, then dRPC (free plan rejects log ranges ≥ 10k blocks, so it is last). Same chain, real nodes.
+    () =>
+      createPublicClient({
+        chain,
+        transport: fallback([
+          http(ARC_TESTNET_BLOCKDAEMON_RPC, { retryCount: 2, retryDelay: 800 }),
+          http(config.rpcUrl, { retryCount: 3, retryDelay: 1000 }),
+          http(ARC_TESTNET_DRPC_RPC, { retryCount: 2, retryDelay: 1000 }),
+        ]),
+      }),
     [chain, config.rpcUrl],
   );
 
