@@ -212,6 +212,7 @@ export function WalletProvider({ config, children }: { config: AppConfig; childr
         if (receipt.status !== 'success') throw new Error(`Transaction reverted on chain: ${hash}`);
         setTx({ phase: 'success', label, hash });
         void queryClient.invalidateQueries({ queryKey: ['balances'] });
+        void queryClient.invalidateQueries({ queryKey: ['escrows'] }); // held payments: re-read pendings(id)
         return { hash, receipt };
       } catch (e) {
         const failure = decodeTxError(e);

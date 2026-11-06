@@ -75,3 +75,17 @@ Deployer (Circle smart account): 0xa3039A54856ed74B5AEc999EeF3fc954Ab010Cf6. All
 
 - `PayScreen.tsx` (UI), `usePay.ts` (allowance -> approve exact amount -> `payByName` / `send`, decodes `Escrowed`), `VerdictChip.tsx` (live verdict + look-alike diff). Lookup logic is `src/lib/recipient.ts` (`resolve`, `inspectRecipient`, `getPayee`); input is only trimmed, never lowercased (same as web/app.js).
 - Held payments: escrow ids are saved to localStorage key `vp:pending:<safeSend>` for the Undo window screen (also readable from `Escrowed` logs).
+
+## GitHub sync (after every step)
+
+0. Before syncing run `diff -r verifypay-maria/server/src server/src` and tell the user if the two differ (`studio-app/server` is a copy of the repo's `server/`, so they must never drift silently). `oidc.js`, `approval.js`, `poisoning.js` are expected to be identical; `server.js` and `bindings.js` are intentionally different.
+1. `bash scripts/sync-studio-app.sh` copies this app into `verifypay-maria/studio-app/` (never `.env*`, `node_modules`, `dist`, `server/data`, `.circle`, `recovery_file*`, logs; never the Solidity contracts).
+2. `git -C verifypay-maria add studio-app AI_USAGE.md`, then scan the staged files (file names and match counts only) for assignments to PRIVATE_KEY or CLIENT_SECRET names and for 64-hex values after an equals sign.
+3. One commit per step, message ending with a blank line and `Built in Arc Studio`; append a row to `verifypay-maria/AI_USAGE.md` in the same commit.
+4. `git -C verifypay-maria push origin main`. Never touch `verifypay-maria/src`, `test`, `cre`, `web`, `server`.
+
+## Undo window (`src/components/undo/`)
+
+- `UndoWindow.tsx` + `EscrowCard.tsx`; data in `src/lib/escrows.ts` (`loadEscrows`): `Escrowed` logs where sender = me from block 70933971 (SafeSend deployment block; the Arc RPC rejects ranges of about 20,000 blocks, so logs are read in 10,000-block chunks and incrementally after the first scan), merged with `vp:pending:<safeSend>` ids, then `SafeSend.pendings(id)`. Closed escrows show undone / released from the `Cancelled` / `Released` events.
+- `src/hooks/useChainTime.ts`: countdowns use the latest block timestamp (re-read every 3s), never the local date. Button state (Undo vs Release) follows the last block actually read.
+- `write()` invalidates `['escrows']` and `['balances']` after every successful transaction.

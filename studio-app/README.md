@@ -28,6 +28,8 @@ The web app connects an injected browser wallet (MetaMask, Rabby), switches it t
 
 The Pay screen takes a business domain or a wallet address and shows a live verdict from the chain: verified (instant), frozen (blocked), a look-alike of a registered business (held 10 minutes with undo), or a first-time address (held 10 minutes with undo).
 
+The Undo window below it lists your held payments straight from the chain, with a countdown based on chain time. Before the window closes you can undo a payment and get your money back; after it closes anyone can release it to the recipient.
+
 The backend provides the World ID approval step, the address-poisoning history scan, and the app configuration at `/api/config`.
 
 ### Environment variables

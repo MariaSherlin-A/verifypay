@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { decodeEventLog, erc20Abi, keccak256, toBytes, type Address, type Hex, type TransactionReceipt } from 'viem';
 import { isBlocked, lookupRecipient, type Recipient } from '@/lib/recipient';
 import { savePending } from '@/lib/pending';
@@ -40,6 +41,7 @@ export const tokenSymbol = (k: TokenKey): string => (k === 'eurc' ? 'EURC' : 'US
 
 export function usePay() {
   const { config, account, publicClient, write } = useWallet();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<string | null>(null);
   const [result, setResult] = useState<PayResult | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -120,6 +122,7 @@ export function usePay() {
           const escrowed = findEscrowed(receipt, config.safeSend);
           if (escrowed) {
             savePending(config.safeSend, escrowed.id);
+            void queryClient.invalidateQueries({ queryKey: ['escrows'] }); // show the new escrow in the Undo window now
             setResult({ kind: 'held', hash, id: escrowed.id, to: escrowed.to, releaseAt: escrowed.releaseAt });
           } else {
             setResult({ kind: 'paid', hash, to: fresh.target });
@@ -134,7 +137,7 @@ export function usePay() {
         setBusy(false);
       }
     },
-    [account, config, parseAmount, publicClient, write],
+    [account, config, parseAmount, publicClient, queryClient, write],
   );
 
   return { pay, parseAmount, step, result, formError, busy, clearResult: () => setResult(null) };

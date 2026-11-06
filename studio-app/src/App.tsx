@@ -4,6 +4,7 @@ import { fetchAppConfig } from '@/lib/appConfig';
 import { Header } from '@/components/Header';
 import { PayScreen } from '@/components/pay/PayScreen';
 import { TxStatus } from '@/components/TxStatus';
+import { UndoWindow } from '@/components/undo/UndoWindow';
 import { WalletProvider } from '@/wallet/WalletProvider';
 import { useWallet } from '@/wallet/walletContext';
 
@@ -46,7 +47,10 @@ function Main() {
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8">
       <PayScreen />
-      <TxStatus />
+      <UndoWindow />
+      <div className="sticky bottom-4 z-30 empty:hidden">
+        <TxStatus />
+      </div>
       <Contracts />
     </main>
   );
