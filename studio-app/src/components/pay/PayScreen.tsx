@@ -30,9 +30,15 @@ function ResultCard({ result }: { result: PayResult }) {
     return (
       <div className="flex items-start gap-2.5 rounded-2xl border border-[#1a8047]/30 bg-[#e9f6ee] px-4 py-3 text-sm text-[#14633a]" role="status">
         <CheckCircle2 size={18} className="mt-0.5 shrink-0" aria-hidden />
-        <p>
-          Paid {result.to.startsWith('0x') ? shortAddr(result.to) : result.to}. {link}
-        </p>
+        <div>
+          <p className="font-semibold">
+            Paid {result.to.startsWith('0x') ? shortAddr(result.to) : result.to}. Settled instantly. {link}
+          </p>
+          <p>
+            Verified business: the money is already in its DNS-verified wallet, so there is no undo window (that is only for
+            first-time and look-alike addresses). It is listed under My payments.
+          </p>
+        </div>
       </div>
     );
   }
