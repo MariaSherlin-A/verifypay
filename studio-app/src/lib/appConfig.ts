@@ -59,13 +59,19 @@ export async function fetchAppConfig(): Promise<AppConfig> {
   };
 }
 
-/** The viem chain object built from the backend config. Gas is USDC at 18 decimals: display only, never used for payments. */
+/** Arc partner RPC listed in the Arc docs. The public RPC rate-limits per IP and its nodes can lag each other, which made
+ * MetaMask resend transactions that had already landed ("already known", shown by MetaMask as "Transaction failed"). */
+const ARC_TESTNET_BLOCKDAEMON_RPC = 'https://rpc.blockdaemon.testnet.arc.io';
+
+/** The viem chain object built from the backend config. Gas is USDC at 18 decimals: display only, never used for payments.
+ * Its RPC list is also what "Switch to Arc" gives the wallet when it adds the network, so Blockdaemon comes first. */
 export function arcChainFromConfig(cfg: AppConfig): Chain {
+  const rpcs = cfg.chainId === 5042002 ? [ARC_TESTNET_BLOCKDAEMON_RPC, cfg.rpcUrl] : [cfg.rpcUrl];
   return defineChain({
     id: cfg.chainId,
     name: 'Arc Testnet',
     nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-    rpcUrls: { default: { http: [cfg.rpcUrl] } },
+    rpcUrls: { default: { http: rpcs } },
     blockExplorers: { default: { name: 'Arc Explorer', url: cfg.explorer } },
   });
 }
