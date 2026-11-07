@@ -23,24 +23,29 @@ async function withRetry(fn, tries = 6) {
 
 /**
  * @param {import('viem').PublicClient} client
- * @param {{ account: string, tokens: string[], lookbackBlocks?: bigint, chunk?: bigint, gapMs?: number }} o
+ * @param {{ account: string, tokens: string[], lookbackBlocks?: bigint, chunk?: bigint, concurrency?: number }} o
  * @returns {Promise<{ logs: object[], fromBlock: bigint, toBlock: bigint }>}
  *   chunk defaults to 10,000 blocks: the Arc RPC rejects larger log ranges.
  */
-export async function fetchTransferLogs(client, { account, tokens, lookbackBlocks = 200_000n, chunk = 10_000n, gapMs = 300 }) {
+export async function fetchTransferLogs(client, { account, tokens, lookbackBlocks = 200_000n, chunk = 10_000n, concurrency = 6 }) {
   const toBlock = await withRetry(() => client.getBlockNumber())
   const fromBlock = toBlock > lookbackBlocks ? toBlock - lookbackBlocks : 0n
-  const logs = []
-  // Sequential with a small gap: the public Arc RPC answers bursts with "rate limit exceeded".
+  const queries = []
   for (let start = fromBlock; start <= toBlock; start += chunk) {
     const end = start + chunk - 1n < toBlock ? start + chunk - 1n : toBlock
-    for (const args of [{ from: account }, { to: account }]) {
-      const part = await withRetry(() =>
-        client.getLogs({ address: tokens, event: TRANSFER, args, fromBlock: start, toBlock: end }),
-      )
-      logs.push(...part)
-      await sleep(gapMs)
+    for (const args of [{ from: account }, { to: account }]) queries.push({ args, fromBlock: start, toBlock: end })
+  }
+  // A few queries at a time instead of one by one: 42 sequential calls took about 16 seconds. Every call still retries
+  // on a rate limit, and any other error fails the whole scan (a partial scan must never look like a clean history).
+  const parts = new Array(queries.length)
+  let next = 0
+  const worker = async () => {
+    while (next < queries.length) {
+      const i = next++
+      const q = queries[i]
+      parts[i] = await withRetry(() => client.getLogs({ address: tokens, event: TRANSFER, ...q }))
     }
   }
-  return { logs, fromBlock, toBlock }
+  await Promise.all(Array.from({ length: Math.min(concurrency, queries.length) }, worker))
+  return { logs: parts.flat(), fromBlock, toBlock }
 }

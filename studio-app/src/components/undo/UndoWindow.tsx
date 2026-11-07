@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { useChainTime } from '@/hooks/useChainTime';
-import { loadEscrows, type Escrow } from '@/lib/escrows';
+import { loadEscrows, type Escrow, type Outcome } from '@/lib/escrows';
 import { SAFESEND_ABI } from '@/lib/txErrors';
 import { useWallet } from '@/wallet/walletContext';
 import { EscrowCard } from './EscrowCard';
@@ -11,6 +11,10 @@ export function UndoWindow() {
   const { config, publicClient, account, write } = useWallet();
   const chainTime = useChainTime();
   const [busyId, setBusyId] = useState<bigint | null>(null);
+  // Escrows this session closed with a confirmed transaction. The next read can come from an RPC node a block behind and
+  // still report the escrow as open, which showed a live Undo button that then failed with NotOpen. A confirmed receipt
+  // is final, so these ids are shown as closed even if a lagging read says otherwise.
+  const [closedHere, setClosedHere] = useState<ReadonlyMap<string, Outcome>>(new Map());
 
   const escrows = useQuery({
     queryKey: ['escrows', account, config.safeSend],
@@ -32,6 +36,7 @@ export function UndoWindow() {
         { address: config.safeSend, abi: SAFESEND_ABI, functionName: fn, args: [escrow.id] },
         `${fn === 'cancel' ? 'Undo' : 'Release'} held payment #${escrow.id.toString()}`,
       );
+      setClosedHere((m) => new Map(m).set(escrow.id.toString(), fn === 'cancel' ? 'undone' : 'released'));
     } catch {
       // the failure is already recorded and shown by <TxStatus />
     } finally {
@@ -69,7 +74,10 @@ export function UndoWindow() {
   } else {
     body = (
       <ul className="space-y-3">
-        {escrows.data.map((e) => (
+        {escrows.data.map((raw) => {
+          const closed = closedHere.get(raw.id.toString());
+          const e = raw.open && closed ? { ...raw, open: false, outcome: closed } : raw;
+          return (
           <EscrowCard
             key={e.id.toString()}
             escrow={e}
@@ -78,7 +86,8 @@ export function UndoWindow() {
             busy={busyId === e.id}
             onAct={(fn) => void act(e, fn)}
           />
-        ))}
+          );
+        })}
       </ul>
     );
   }

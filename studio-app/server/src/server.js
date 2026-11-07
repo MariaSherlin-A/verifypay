@@ -43,14 +43,18 @@ const USDC = getAddress(usdc.address)
 const PUBLIC_RPC = chain.rpcUrls[0]
 const EXPLORER = chain.explorerBase
 
-// Server-side reads use the sandbox RPC proxy when it covers this chain, else the public RPC.
+// Server-side reads use the sandbox RPC proxy when it covers this chain, else Blockdaemon's Arc Testnet endpoint (an
+// Arc partner RPC listed in the Arc docs). The public RPC rate-limits per IP, which made the history scan slow.
 // The proxy URL carries a token: it is never logged or returned (see safeMessage).
+const ARC_TESTNET_BLOCKDAEMON_RPC = 'https://rpc.blockdaemon.testnet.arc.io'
 const proxyChains = (env.RPC_PROXY_CHAINS || '').split(',')
 const serverRpc =
   env[`RPC_URL_${COMPASS_CHAIN}`] ||
   (env.RPC_PROXY_BASE_URL && proxyChains.includes(COMPASS_CHAIN)
     ? `${env.RPC_PROXY_BASE_URL}/api/rpc/${COMPASS_CHAIN}?_rpc_token=${env.RPC_PROXY_TOKEN}`
-    : PUBLIC_RPC)
+    : CHAIN_ID === 5042002
+      ? ARC_TESTNET_BLOCKDAEMON_RPC
+      : PUBLIC_RPC)
 
 const arc = {
   id: CHAIN_ID,
